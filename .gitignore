@@ -1,0 +1,37 @@
+# ========================
+# KREDENSIAL & RAHASIA (PENTING!)
+# ========================
+.env
+.env.local
+.env.*
+atlas-crdentials.env
+**/*.env
+**/atlas-crdentials.env
+
+# ========================
+# DEPENDENSI NODE.JS
+# ========================
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# ========================
+# NEXT.JS BUILD FILES
+# ========================
+.next/
+out/
+build/
+.vercel/
+
+# ========================
+# FILE UPLOAD (PDF LOGISTIC/PROJECT)
+# ========================
+# Agar file PDF testing tidak ikut ter-push ke GitHub
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ========================
+# SISTEM OPERASI (MAC/WINDOWS)
+# ========================
+.DS_Store
+Thumbs.db
