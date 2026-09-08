@@ -6,12 +6,15 @@ import { glassBase, glassButton } from '../page';
 export default function TelemetryView() {
   const [logs, setLogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [emailFilter, setEmailFilter] = useState('');
+  const api = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5555';
 
   useEffect(() => { fetchLogs(); }, []);
 
   const fetchLogs = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:5555/api/telemetry');
+      const query = emailFilter ? `?email=${encodeURIComponent(emailFilter)}&limit=200` : '?limit=200';
+      const res = await fetch(`${api}/api/telemetry${query}`);
       if (res.ok) {
         const result = await res.json();
         if (result.success) setLogs(result.data);
@@ -23,7 +26,7 @@ export default function TelemetryView() {
   const clearLogs = async () => {
     if (!confirm('Peringatan: Aksi ini akan memusnahkan semua riwayat log pengunjung. Lanjutkan?')) return;
     try {
-      await fetch('http://127.0.0.1:5555/api/telemetry/clear', { method: 'DELETE' });
+      await fetch(`${api}/api/telemetry/clear`, { method: 'DELETE' });
       fetchLogs();
     } catch (error) { console.error("Gagal hapus log:", error); }
   };
@@ -35,9 +38,11 @@ export default function TelemetryView() {
           <h3 className="font-mono text-[10px] tracking-[0.2em] text-emerald-400 uppercase">TELEMETRY & LOGS</h3>
           <p className="font-mono text-[9px] text-white/50 uppercase">LIVE TRACKING AKTIVITAS PENGUNJUNG DI DASHBOARD UTAMA.</p>
         </div>
-        <button onClick={clearLogs} className="px-4 py-2 bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-black font-mono text-[9px] tracking-widest uppercase transition-colors">
-          PURGE LOGS
-        </button>
+        <div className="flex gap-2">
+          <input value={emailFilter} onChange={(event) => setEmailFilter(event.target.value)} placeholder="FILTER EMAIL" className="bg-black/40 border border-white/10 px-3 py-2 font-mono text-[9px] text-white" />
+          <button onClick={() => fetchLogs()} className="px-4 py-2 bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono text-[9px] tracking-widest uppercase">FILTER</button>
+          <button onClick={clearLogs} className="px-4 py-2 bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-black font-mono text-[9px] tracking-widest uppercase transition-colors">PURGE LOGS</button>
+        </div>
       </div>
 
       <div className={`${glassBase} flex-1 overflow-y-auto custom-scrollbar bg-[#050505] p-6 font-mono text-[10px] uppercase border-emerald-500/20 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)] relative`}>
@@ -48,11 +53,12 @@ export default function TelemetryView() {
         
         <div className="flex flex-col gap-3 relative z-10">
           {!isLoading && logs.map((log, i) => (
-            <div key={i} className="flex flex-col sm:flex-row gap-2 sm:gap-6 border-b border-emerald-500/10 pb-2 hover:bg-emerald-500/5 transition-colors">
-              <span className="text-white/40 w-32 shrink-0">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
-              <span className="text-emerald-300 w-56 shrink-0">USER: {log.visitorName || log.email || 'GUEST'} {log.visitorEmail && `(${log.visitorEmail})`}</span>
-              <span className="text-cyan-400 w-24 shrink-0">[{log.action}]</span>
-              <span className="text-white/80">{log.details}</span>
+            <div key={i} className="grid grid-cols-1 xl:grid-cols-[180px_1.4fr_1.2fr_1fr_2fr] gap-2 border-b border-emerald-500/10 pb-3 hover:bg-emerald-500/5 transition-colors">
+              <span className="text-white/40">[{new Date(log.timestamp).toLocaleString()}]</span>
+              <span className="text-emerald-300">USER: {log.visitorName || log.identity?.name || 'GUEST'}<br /><span className="text-[9px] text-white/50">{log.visitorEmail || log.identity?.email || 'NO EMAIL'} | {log.identity?.company || 'NO COMPANY'}</span></span>
+              <span className="text-cyan-400">IP: {log.ipAddress || 'UNKNOWN'}<br /><span className="text-[9px] text-white/50">{log.userAgent?.slice(0, 40) || 'NO USER AGENT'}</span></span>
+              <span className="text-amber-300">[{log.action}]<br /><span className="text-[9px] text-white/50">{log.sessionId || 'NO SESSION'}</span></span>
+              <span className="text-white/80">{log.details}<br /><span className="text-[9px] text-white/50">{log.identity?.position || ''} {log.identity?.goal ? `| GOAL: ${log.identity.goal}` : ''}</span></span>
             </div>
           ))}
         </div>

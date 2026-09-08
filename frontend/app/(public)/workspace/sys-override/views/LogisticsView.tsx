@@ -13,9 +13,14 @@ export default function LogisticsView() {
   
   const [formData, setFormData] = useState({
     itemName: '',
+    recordType: 'JOB_APPLICATION',
+    company: '',
+    role: '',
     category: 'HARDWARE ASSET',
     status: 'ACTIVE / DEPLOYED',
     location: 'BEKASI HQ',
+    deadline: '',
+    priority: 'MEDIUM',
     notes: ''
   });
 
@@ -42,7 +47,7 @@ export default function LogisticsView() {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
-        setFormData({ itemName: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', notes: '' });
+        setFormData({ itemName: '', recordType: 'JOB_APPLICATION', company: '', role: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', deadline: '', priority: 'MEDIUM', notes: '' });
         setEditingId(null);
         fetchItems();
       }
@@ -52,7 +57,7 @@ export default function LogisticsView() {
 
   const handleEdit = (item: any) => {
     setEditingId(item._id);
-    setFormData({ itemName: item.itemName || '', category: item.category || '', status: item.status || '', location: item.location || '', notes: item.notes || '' });
+    setFormData({ itemName: item.itemName || '', recordType: item.recordType || 'TASK', company: item.company || '', role: item.role || '', category: item.category || '', status: item.status || '', location: item.location || '', deadline: item.deadline ? item.deadline.slice(0, 10) : '', priority: item.priority || 'MEDIUM', notes: item.notes || '' });
   };
 
   const handleDelete = async (id: string) => {
@@ -76,14 +81,21 @@ export default function LogisticsView() {
       <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60 p-6`}>
         <div className="flex justify-between border-b border-white/10 pb-4 mb-6">
           <h4 className="font-mono text-xs text-white uppercase tracking-widest">{editingId ? 'UPDATE ASSET' : 'REGISTER NEW ASSET'}</h4>
-          {editingId && <button type="button" onClick={() => { setEditingId(null); setFormData({ itemName: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', notes: '' }); }} className="font-mono text-[9px] text-white/50 uppercase">CANCEL [X]</button>}
+          {editingId && <button type="button" onClick={() => { setEditingId(null); setFormData({ itemName: '', recordType: 'JOB_APPLICATION', company: '', role: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', deadline: '', priority: 'MEDIUM', notes: '' }); }} className="font-mono text-[9px] text-white/50 uppercase">CANCEL [X]</button>}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="flex flex-col gap-2">
+            <label className="font-mono text-[9px] text-amber-400 uppercase">TRACKING TYPE</label>
+            <select value={formData.recordType} onChange={e => setFormData({...formData, recordType: e.target.value})} className={glassInput}>
+              <option value="JOB_APPLICATION">JOB APPLICATION</option><option value="TASK">TASK / TODO</option><option value="ASSET">ASSET</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-2">
             <label className="font-mono text-[9px] text-amber-400 uppercase">ITEM / ASSET NAME</label>
             <input value={formData.itemName} onChange={e => setFormData({...formData, itemName: e.target.value})} className={glassInput} required placeholder="Misal: MacBook Pro M2" />
           </div>
+          {formData.recordType === 'JOB_APPLICATION' && <><div className="flex flex-col gap-2"><label className="font-mono text-[9px] text-amber-400 uppercase">COMPANY</label><input value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} className={glassInput} required /></div><div className="flex flex-col gap-2"><label className="font-mono text-[9px] text-amber-400 uppercase">ROLE</label><input value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className={glassInput} required /></div></>}
 
           <div className="flex flex-col gap-2">
             <label className="font-mono text-[9px] text-amber-400 uppercase">ASSET CATEGORY</label>
@@ -95,6 +107,8 @@ export default function LogisticsView() {
               <option value="OFFICE SUPPLY" />
             </datalist>
           </div>
+          <div className="flex flex-col gap-2"><label className="font-mono text-[9px] text-white/50 uppercase">DEADLINE</label><input type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className={glassInput} /></div>
+          <div className="flex flex-col gap-2"><label className="font-mono text-[9px] text-white/50 uppercase">PRIORITY</label><select value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})} className={glassInput}><option>LOW</option><option>MEDIUM</option><option>HIGH</option></select></div>
 
           <div className="flex flex-col gap-2">
             <label className="font-mono text-[9px] text-white/50 uppercase">CURRENT STATUS</label>
@@ -126,8 +140,8 @@ export default function LogisticsView() {
       {/* TABEL LOGISTIK */}
       <div className={`${glassBase} p-0 overflow-hidden`}>
         <div className="grid grid-cols-12 gap-4 border-b border-white/10 p-4 bg-white/5">
-          <div className="col-span-3 font-mono text-[10px] text-white/50 uppercase">ITEM NAME</div>
-          <div className="col-span-2 font-mono text-[10px] text-white/50 uppercase">CATEGORY</div>
+          <div className="col-span-3 font-mono text-[10px] text-white/50 uppercase">RECORD / COMPANY</div>
+          <div className="col-span-2 font-mono text-[10px] text-white/50 uppercase">TYPE / ROLE</div>
           <div className="col-span-3 font-mono text-[10px] text-white/50 uppercase">STATUS / LOCATION</div>
           <div className="col-span-2 font-mono text-[10px] text-white/50 uppercase">NOTES</div>
           <div className="col-span-2 font-mono text-[10px] text-white/50 uppercase text-right">ACTION</div>
@@ -138,8 +152,8 @@ export default function LogisticsView() {
 
         {!isLoading && items.map((item, idx) => (
           <div key={item._id || idx} className="grid grid-cols-12 gap-4 border-b border-white/5 p-4 items-center hover:bg-white/10 transition-colors">
-            <div className="col-span-3 font-mono text-xs text-white uppercase truncate pr-4">{item.itemName}</div>
-            <div className="col-span-2 font-mono text-[9px] text-amber-400 uppercase truncate pr-4">{item.category}</div>
+            <div className="col-span-3 font-mono text-xs text-white uppercase truncate pr-4">{item.company || item.itemName}<span className="block text-[8px] text-white/40">{item.itemName}</span></div>
+            <div className="col-span-2 font-mono text-[9px] text-amber-400 uppercase truncate pr-4">{item.recordType}<span className="block text-white/50">{item.role || item.category}</span></div>
             <div className="col-span-3 flex flex-col gap-1">
               <span className="font-mono text-[9px] text-white/80 uppercase truncate">{item.status}</span>
               <span className="font-mono text-[8px] text-white/40 uppercase truncate">LOC: {item.location}</span>

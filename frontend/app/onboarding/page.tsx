@@ -47,6 +47,21 @@ export default function Onboarding() {
         return;
       }
       setVisitorData({ ...formData, ...(result.data || {}) });
+      window.localStorage.setItem('visitor_profile', JSON.stringify(formData));
+      const sessionId = crypto.randomUUID();
+      window.localStorage.setItem('visitor_session_id', sessionId);
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5555'}/api/telemetry`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          visitorName: formData.name,
+          visitorEmail: formData.email,
+          identity: formData,
+          action: 'OTP_VERIFIED',
+          details: 'Visitor completed onboarding and entered the portfolio workspace.'
+        })
+      });
       if (result.data?.token) {
         document.cookie = `visitor_session=${encodeURIComponent(result.data.token)}; path=/; max-age=604800; samesite=lax`;
       }
