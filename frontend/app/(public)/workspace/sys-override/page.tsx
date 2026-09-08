@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 import VisualsView from './views/VisualsView';
 import DashboardCmsView from './views/DashboardCmsView';
-import TrackerView from './views/TrackerView';
+import LogisticsView from './views/LogisticsView';
 import TelemetryView from './views/TelemetryView';
 import AiCortexView from './views/AiCortexView';
 import AssetsView from './views/AssetsView';
@@ -44,7 +44,7 @@ export default function AdminPanel() {
     switch (activeModule) {
       case 'visuals': return <VisualsView />;
       case 'dashboard_cms': return <DashboardCmsView />;
-      case 'tracker': return <TrackerView />;
+      case 'tracker': return <LogisticsView />;
       case 'telemetry': return <TelemetryView />;
       case 'ai_cortex': return <AiCortexView />;
       case 'assets': return <AssetsView />;
@@ -80,7 +80,7 @@ export default function AdminPanel() {
         </button>
       </aside>
 
-      <main className="flex-1 flex flex-col h-[calc(100vh-4rem)] z-10">
+      <main className="flex-1 min-w-0 flex flex-col h-[calc(100vh-4rem)] z-10 max-w-[1600px]">
         <header className="mb-6 flex items-center justify-between">
           <h2 className="font-mono text-xl tracking-widest text-cyan-400 uppercase drop-shadow-[0_0_5px_rgba(6,182,212,0.4)]">
             {ADMIN_MODULES.find(m => m.id === activeModule)?.label}
@@ -90,7 +90,7 @@ export default function AdminPanel() {
             <span className="font-mono text-[10px] tracking-widest text-white/50 uppercase">SYSTEM ONLINE</span>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 pb-10">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-1 sm:px-2 lg:px-4 pb-10">
           {renderActiveModule()}
         </div>
       </main>

@@ -96,7 +96,7 @@ export default function ProjectsView() {
         <p className="font-mono text-[9px] text-white/50 uppercase leading-relaxed">TAMBAHKAN ATAU EDIT PORTOFOLIO. DATA AKAN LANGSUNG MUNCUL DI DASHBOARD PENGUNJUNG SESUAI KATEGORI.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60 relative`}>
+      <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60 relative p-6`}>
         {isEditing && <div className="absolute -top-3 right-6 bg-amber-500 px-4 py-1 text-black font-mono text-[9px] tracking-widest font-bold animate-pulse">EDIT MODE ACTIVE</div>}
         
         <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-6">

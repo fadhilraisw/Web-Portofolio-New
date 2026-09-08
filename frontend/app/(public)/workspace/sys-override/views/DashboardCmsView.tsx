@@ -12,6 +12,8 @@ export default function DashboardCmsView() {
   const [editingCard, setEditingCard] = useState<any | null>(null);
   const [formData, setFormData] = useState({ identifier: '', title: '', type: 'CHART_BAR', desc: '', colSpan: 12, order: 0, rawPayload: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formMessage, setFormMessage] = useState('');
 
   useEffect(() => { 
     fetchCards(); 
@@ -56,6 +58,8 @@ export default function DashboardCmsView() {
       order: cards.length + 1, 
       rawPayload: '[\n  {"name": "Item A", "score": 80},\n  {"name": "Item B", "score": 90}\n]' 
     });
+    setFormError('');
+    setFormMessage('');
     setIsAdding(true);
   };
 
@@ -72,15 +76,35 @@ export default function DashboardCmsView() {
       order: card.order || 0,
       rawPayload: typeof card.dataPayload === 'object' ? JSON.stringify(card.dataPayload, null, 2) : card.dataPayload
     });
+    setFormError('');
+    setFormMessage('');
+  };
+
+  const useTemplate = (template: 'chart' | 'timeline' | 'text') => {
+    const templates = {
+      chart: { type: 'CHART_BAR', payload: '[\n  {"name": "NEXT.JS", "value": 95},\n  {"name": "PYTHON", "value": 90}\n]' },
+      timeline: { type: 'TIMELINE', payload: '[\n  {"title": "MILESTONE", "desc": "Describe the milestone", "color": "cyan"}\n]' },
+      text: { type: 'HOVER_LIST', payload: '{\n  "color": "cyan",\n  "items": [{"label": "TITLE", "desc": "Description"}]\n}' }
+    };
+    const selected = templates[template];
+    setFormData((current) => ({ ...current, type: selected.type, rawPayload: selected.payload }));
   };
 
   // Handle Submit (Bisa untuk CREATE baru, atau UPDATE yang ada)
   const handleSubmitCard = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFormError('');
+    setFormMessage('');
 
-    let parsedPayload = formData.rawPayload;
-    try { parsedPayload = JSON.parse(formData.rawPayload); } catch (err) {}
+    let parsedPayload: unknown;
+    try {
+      parsedPayload = JSON.parse(formData.rawPayload);
+    } catch {
+      setFormError('DATA PAYLOAD MUST BE VALID JSON.');
+      setIsSubmitting(false);
+      return;
+    }
 
     const payloadData = {
       identifier: formData.identifier,
@@ -107,9 +131,13 @@ export default function DashboardCmsView() {
         setIsAdding(false);
         setEditingCard(null);
         fetchCards();
+        setFormMessage(isAdding ? 'COMPONENT PUBLISHED.' : 'COMPONENT UPDATED.');
+      } else {
+        setFormError(result.message || 'DATABASE REQUEST FAILED.');
       }
     } catch (error) { 
       console.error("Gagal menyimpan kartu:", error); 
+      setFormError('DATABASE REQUEST FAILED. CHECK THE API SERVER.');
     } finally { 
       setIsSubmitting(false); 
     }
@@ -145,6 +173,12 @@ export default function DashboardCmsView() {
           <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
             <h4 className="font-mono text-xs text-fuchsia-400 uppercase tracking-widest">{isAdding ? 'CREATE NEW COMPONENT' : `EDITING: ${editingCard.identifier}`}</h4>
             <button type="button" onClick={() => { setIsAdding(false); setEditingCard(null); }} className="font-mono text-xs text-white/50 hover:text-white">CLOSE [X]</button>
+          </div>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[9px] text-white/50 uppercase">QUICK START:</span>
+            <button type="button" onClick={() => useTemplate('chart')} className="border border-cyan-500/30 px-2 py-1 font-mono text-[9px] text-cyan-400">CHART</button>
+            <button type="button" onClick={() => useTemplate('timeline')} className="border border-cyan-500/30 px-2 py-1 font-mono text-[9px] text-cyan-400">TIMELINE</button>
+            <button type="button" onClick={() => useTemplate('text')} className="border border-cyan-500/30 px-2 py-1 font-mono text-[9px] text-cyan-400">TEXT LIST</button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
@@ -197,8 +231,11 @@ export default function DashboardCmsView() {
               <label className="font-mono text-[8px] text-cyan-400 uppercase">MAP PINS: {`{"pins": [{"lat": -6.2, "lng": 106.9, "title": "...", "desc": "..."}]}`}</label>
             </div>
             <textarea rows={8} value={formData.rawPayload} onChange={e => setFormData({...formData, rawPayload: e.target.value})} className="bg-black/40 border border-white/10 p-3 font-mono text-xs text-cyan-300 outline-none focus:border-fuchsia-400 custom-scrollbar" required />
+            <p className="font-mono text-[8px] text-white/40 uppercase">Use the quick-start templates, then replace the sample labels and values. The payload must remain valid JSON.</p>
           </div>
 
+          {formError && <p className="mb-4 font-mono text-[9px] text-rose-400 uppercase">{formError}</p>}
+          {formMessage && <p className="mb-4 font-mono text-[9px] text-emerald-400 uppercase">{formMessage}</p>}
           <button type="submit" disabled={isSubmitting} className={`${glassButton} bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/40 hover:bg-fuchsia-500 hover:text-black w-full py-3 text-xs`}>
             {isSubmitting ? (
               <>UPDATING DATABASE<span className="animate-pulse ml-1">_</span></>

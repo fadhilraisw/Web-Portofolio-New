@@ -64,7 +64,7 @@ export default function SecurityView() {
         <p className="font-mono text-[9px] text-white/50 uppercase leading-relaxed">KONTROL PENUH ATAS LALU LINTAS JARINGAN, BLOKIR IP MENCURIGAKAN, ATAU WHITELIST PENGUNJUNG PRIORITAS.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60`}>
+      <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60 p-6`}>
         <h4 className="font-mono text-xs text-white uppercase tracking-widest mb-6 border-b border-white/10 pb-4">ADD NEW SECURITY DIRECTIVE</h4>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

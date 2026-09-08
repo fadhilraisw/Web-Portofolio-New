@@ -16,15 +16,43 @@ export default function VisualsView() {
   const [isUploadingExcel, setIsUploadingExcel] = useState(false);
   const [rows, setRows] = useState([{ name: '', value: '', color: '#00e5ff' }]);
   const [title, setTitle] = useState('NEW VISUALIZATION');
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const publishChart = async () => {
+  const publishChart = async (event: React.SyntheticEvent) => {
+    event.preventDefault();
     const dataPayload = rows.filter((row) => row.name.trim()).map((row) => ({ ...row, value: Number(row.value) || 0 }));
-    const response = await fetch('http://127.0.0.1:5555/api/cards', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier: `VISUAL_${Date.now()}`, title, type: selectedBuilderChart, desc: 'Published visualization', colSpan: 4, order: Date.now(), isVisible: true, dataPayload }),
-    });
-    if (!response.ok) console.error('Gagal publish visualisasi');
+    if (!title.trim() || dataPayload.length === 0) {
+      setMessage('TITLE AND AT LEAST ONE DATA ROW ARE REQUIRED.');
+      return;
+    }
+    setIsPublishing(true);
+    setMessage('');
+    try {
+      const response = await fetch('http://127.0.0.1:5555/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: `VISUAL_${Date.now()}`,
+          title: title.trim(),
+          type: selectedBuilderChart,
+          desc: 'Published visualization',
+          colSpan: 4,
+          order: Date.now(),
+          isVisible: true,
+          valueKey: 'value',
+          dataPayload
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Publish failed');
+      setMessage('VISUALIZATION PUBLISHED TO DASHBOARD.');
+      setRows([{ name: '', value: '', color: '#00e5ff' }]);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message.toUpperCase() : 'PUBLISH FAILED.');
+    } finally {
+      setIsPublishing(false);
+    }
   };
 
   return (
@@ -35,7 +63,7 @@ export default function VisualsView() {
             <h3 className="font-mono text-sm tracking-[0.2em] text-cyan-400 uppercase mb-1">TABLEAU-MODE: VISUALIZATION BUILDER</h3>
             <p className="font-mono text-[9px] text-white/50 uppercase">SELECT CHART. INJECT MANUALLY OR UPLOAD .XLSX TO AUTOGENERATE.</p>
           </div>
-          <button onClick={publishChart} className={`${glassButton} bg-cyan-500 text-black hover:bg-white hover:text-black`}>PUBLISH TO DASHBOARD</button>
+          <button onClick={publishChart} disabled={isPublishing} className={`${glassButton} bg-cyan-500 text-black hover:bg-white hover:text-black disabled:opacity-50`}>{isPublishing ? 'PUBLISHING...' : 'PUBLISH TO DASHBOARD'}</button>
         </div>
         <div className="flex flex-col lg:flex-row min-h-[400px]">
           <div className="w-full lg:w-1/3 border-r border-white/10 bg-black/20 p-4 overflow-y-auto max-h-[400px] custom-scrollbar">
@@ -56,7 +84,7 @@ export default function VisualsView() {
                 <button onClick={() => setIsUploadingExcel(!isUploadingExcel)} className={`${glassButton} bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black px-3 py-2`}>
                   {isUploadingExcel ? 'CANCEL UPLOAD' : 'IMPORT .XLSX / .CSV'}
                 </button>
-                <button className="font-mono text-[9px] text-white hover:text-cyan-400 bg-white/5 px-3 py-2 border border-white/10">+ ADD ROW</button>
+                <button type="button" onClick={() => setRows([...rows, { name: '', value: '', color: '#00e5ff' }])} className="font-mono text-[9px] text-white hover:text-cyan-400 bg-white/5 px-3 py-2 border border-white/10">+ ADD ROW</button>
               </div>
             </div>
             {isUploadingExcel ? (
@@ -79,6 +107,7 @@ export default function VisualsView() {
                 <button onClick={() => setRows([...rows, { name: '', value: '', color: '#00e5ff' }])} className="font-mono text-[9px] text-white hover:text-cyan-400 bg-white/5 px-3 py-2 border border-white/10">+ ADD ROW</button>
               </div>
             )}
+            {message && <p className={`mt-4 font-mono text-[9px] uppercase ${message.includes('PUBLISHED') ? 'text-emerald-400' : 'text-rose-400'}`}>{message}</p>}
           </div>
         </div>
       </div>

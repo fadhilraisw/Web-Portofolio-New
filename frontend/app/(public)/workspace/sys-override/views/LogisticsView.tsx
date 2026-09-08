@@ -73,7 +73,7 @@ export default function LogisticsView() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60`}>
+      <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60 p-6`}>
         <div className="flex justify-between border-b border-white/10 pb-4 mb-6">
           <h4 className="font-mono text-xs text-white uppercase tracking-widest">{editingId ? 'UPDATE ASSET' : 'REGISTER NEW ASSET'}</h4>
           {editingId && <button type="button" onClick={() => { setEditingId(null); setFormData({ itemName: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', notes: '' }); }} className="font-mono text-[9px] text-white/50 uppercase">CANCEL [X]</button>}
@@ -145,7 +145,7 @@ export default function LogisticsView() {
               <span className="font-mono text-[8px] text-white/40 uppercase truncate">LOC: {item.location}</span>
             </div>
             <div className="col-span-2 font-mono text-[9px] text-white/50 truncate pr-2">{item.notes || '-'}</div>
-            <div className="col-span-2 flex justify-end">
+            <div className="col-span-2 flex justify-end gap-2">
               <button onClick={() => handleEdit(item)} className="px-3 py-1 bg-amber-500/10 font-mono text-[9px] text-amber-400 border border-amber-500/20 hover:bg-amber-500 hover:text-black uppercase transition-colors">EDIT</button>
               <button onClick={() => handleDelete(item._id)} className="px-3 py-1 bg-rose-500/10 font-mono text-[9px] text-rose-400 border border-rose-500/20 hover:bg-rose-500 hover:text-black uppercase transition-colors">DEL</button>
             </div>

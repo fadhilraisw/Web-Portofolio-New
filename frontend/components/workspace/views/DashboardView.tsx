@@ -422,7 +422,7 @@ export function DashboardView({ visitor, visitorGoal, isHR, isTechLead }: any) {
       {customCards.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {customCards.map((card) => (
-             <DynamicCardRenderer key={card._id} card={card} />
+             <DynamicCardRenderer key={card._id} card={card} visitor={visitor} visitorGoal={visitorGoal} isHR={isHR} isTechLead={isTechLead} />
           ))}
         </div>
       )}

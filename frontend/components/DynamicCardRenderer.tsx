@@ -39,6 +39,9 @@ const HoverListItem = ({ label, desc }: { label: string, desc: string }) => (
 
 export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, isTechLead }: any) {
   if (!card.isVisible) return null;
+  const firstDatum = Array.isArray(card.dataPayload) ? card.dataPayload[0] : null;
+  const inferredValueKey = firstDatum?.score !== undefined ? 'score' : firstDatum?.value !== undefined ? 'value' : 'value';
+  const valueKey = card.valueKey || inferredValueKey;
 
   // Rumus ukuran Grid
   const gridSpan = `md:col-span-${card.colSpan > 6 ? (card.colSpan === 12 ? 'full' : '2') : '1'} xl:col-span-${card.colSpan === 12 ? 'full' : Math.ceil(card.colSpan / 4)}`;
@@ -137,7 +140,7 @@ export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, 
               <XAxis type="number" hide />
               <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 8, fontFamily: 'monospace' }} width={90} />
               <Tooltip content={<CustomChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.1)' }} />
-              <Bar dataKey="score" fill="#ffffff" radius={[0, 0, 0, 0]} barSize={8} className="transition-all duration-300 hover:fill-cyan-400" />
+              <Bar dataKey={valueKey} fill="#ffffff" radius={[0, 0, 0, 0]} barSize={8} className="transition-all duration-300 hover:fill-cyan-400" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -194,7 +197,7 @@ export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, 
             ) : card.type === 'CHART_COMPOSED' ? (
               <ComposedChart data={card.dataPayload || []}><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis dataKey={card.xKey || 'name'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Bar dataKey={card.barKey || 'bar'} fill="#a78bfa" /><Line dataKey={card.lineKey || 'line'} stroke="#22d3ee" /><Area dataKey={card.areaKey || 'area'} fill="#34d399" fillOpacity={0.2} /></ComposedChart>
             ) : (
-              <PieChart><Pie data={card.dataPayload || []} innerRadius={card.type === 'CHART_DONUT' ? 38 : 0} outerRadius={58} dataKey={card.yKey || 'value'} stroke="none">{(card.dataPayload || []).map((entry: any, index: number) => <Cell key={index} fill={entry.color || ['#22d3ee', '#a78bfa', '#34d399', '#f472b6'][index % 4]} />)}</Pie><Tooltip content={<CustomChartTooltip />} /></PieChart>
+              <PieChart><Pie data={card.dataPayload || []} innerRadius={card.type === 'CHART_DONUT' ? 38 : 0} outerRadius={58} dataKey={card.yKey || valueKey} stroke="none">{(card.dataPayload || []).map((entry: any, index: number) => <Cell key={index} fill={entry.color || ['#22d3ee', '#a78bfa', '#34d399', '#f472b6'][index % 4]} />)}</Pie><Tooltip content={<CustomChartTooltip />} /></PieChart>
             )}
           </ResponsiveContainer>
         </div>
