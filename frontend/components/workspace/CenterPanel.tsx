@@ -40,6 +40,7 @@ export function CenterPanel({ activeCategory, isLoading, visitorGoal, visitor }:
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             visitorName: visitor?.name || 'GUEST',
+            visitorEmail: visitor?.email || '',
             action: 'NAVIGATION',
             details: `Akses direktori: ${activeCategory.toUpperCase()}`
           })

@@ -9,6 +9,7 @@ export default function LogisticsView() {
   const [items, setItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     itemName: '',
@@ -35,17 +36,23 @@ export default function LogisticsView() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch('http://127.0.0.1:5555/api/logistics', {
-        method: 'POST',
+      const res = await fetch(`http://127.0.0.1:5555/api/logistics${editingId ? `/${editingId}` : ''}`, {
+        method: editingId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
       if (res.ok) {
         setFormData({ itemName: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', notes: '' });
+        setEditingId(null);
         fetchItems();
       }
     } catch (error) { console.error("Gagal menyimpan data:", error); } 
     finally { setIsSubmitting(false); }
+  };
+
+  const handleEdit = (item: any) => {
+    setEditingId(item._id);
+    setFormData({ itemName: item.itemName || '', category: item.category || '', status: item.status || '', location: item.location || '', notes: item.notes || '' });
   };
 
   const handleDelete = async (id: string) => {
@@ -67,7 +74,10 @@ export default function LogisticsView() {
       </div>
 
       <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60`}>
-        <h4 className="font-mono text-xs text-white uppercase tracking-widest mb-6 border-b border-white/10 pb-4">REGISTER NEW ASSET</h4>
+        <div className="flex justify-between border-b border-white/10 pb-4 mb-6">
+          <h4 className="font-mono text-xs text-white uppercase tracking-widest">{editingId ? 'UPDATE ASSET' : 'REGISTER NEW ASSET'}</h4>
+          {editingId && <button type="button" onClick={() => { setEditingId(null); setFormData({ itemName: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', notes: '' }); }} className="font-mono text-[9px] text-white/50 uppercase">CANCEL [X]</button>}
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="flex flex-col gap-2">
@@ -109,7 +119,7 @@ export default function LogisticsView() {
         </div>
 
         <button type="submit" disabled={isSubmitting} className={`${glassButton} ${isSubmitting ? 'bg-white/10 text-white/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/40 hover:bg-amber-500 hover:text-black'} w-full py-4 text-xs font-bold transition-colors`}>
-          {isSubmitting ? <>EXECUTING LOG<span className="animate-pulse ml-1">_</span></> : 'REGISTER LOGISTIC ITEM'}
+          {isSubmitting ? <>EXECUTING LOG<span className="animate-pulse ml-1">_</span></> : editingId ? 'UPDATE LOGISTIC ITEM' : 'REGISTER LOGISTIC ITEM'}
         </button>
       </form>
 
@@ -136,9 +146,8 @@ export default function LogisticsView() {
             </div>
             <div className="col-span-2 font-mono text-[9px] text-white/50 truncate pr-2">{item.notes || '-'}</div>
             <div className="col-span-2 flex justify-end">
-              <button onClick={() => handleDelete(item._id)} className="px-3 py-1 bg-rose-500/10 font-mono text-[9px] text-rose-400 border border-rose-500/20 hover:bg-rose-500 hover:text-black uppercase transition-colors">
-                DEL
-              </button>
+              <button onClick={() => handleEdit(item)} className="px-3 py-1 bg-amber-500/10 font-mono text-[9px] text-amber-400 border border-amber-500/20 hover:bg-amber-500 hover:text-black uppercase transition-colors">EDIT</button>
+              <button onClick={() => handleDelete(item._id)} className="px-3 py-1 bg-rose-500/10 font-mono text-[9px] text-rose-400 border border-rose-500/20 hover:bg-rose-500 hover:text-black uppercase transition-colors">DEL</button>
             </div>
           </div>
         ))}

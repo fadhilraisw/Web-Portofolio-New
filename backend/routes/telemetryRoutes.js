@@ -1,29 +1,3 @@
-const express = require('express');
-const router = express.Router();
-const Telemetry = require('../models/Telemetry');
-
-// Menerima data dari Frontend (User)
-router.post('/', async (req, res) => {
-  try {
-    const log = await Telemetry.create(req.body);
-    res.status(201).json({ success: true, data: log });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
-});
-
-// Menampilkan log di Admin Panel
-router.get('/', async (req, res) => {
-  try {
-    const logs = await Telemetry.find().sort({ timestamp: -1 }).limit(100);
-    res.status(200).json({ success: true, data: logs });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
-});
-
-// Menghapus semua log (Clear History)
-router.delete('/clear', async (req, res) => {
-  try {
-    await Telemetry.deleteMany({});
-    res.status(200).json({ success: true, message: 'Log dibersihkan' });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
-});
-
-module.exports = router;
+const express=require('express'); const Telemetry=require('../models/Telemetry'); const {asyncHandler,fail}=require('../utils/http'); const r=express.Router();
+r.post('/',asyncHandler(async(req,res)=>{const b={...req.body,ipAddress:req.ip,userAgent:req.get('user-agent')}; res.status(201).json({success:true,data:await Telemetry.create(b)});}));
+r.get('/',asyncHandler(async(req,res)=>{const limit=Math.min(Number(req.query.limit)||100,500); res.json({success:true,data:await Telemetry.find().sort({timestamp:-1}).limit(limit)});})); r.delete('/clear',asyncHandler(async(req,res)=>{const x=await Telemetry.deleteMany({}); res.json({success:true,data:{deletedCount:x.deletedCount}});})); r.delete('/:id',asyncHandler(async(req,res)=>{const x=await Telemetry.findByIdAndDelete(req.params.id); if(!x)return fail(res,404,'Not found'); res.json({success:true,data:x});})); module.exports=r;

@@ -1,10 +1,2 @@
 const mongoose = require('mongoose');
-
-const TelemetrySchema = new mongoose.Schema({
-  visitorName: { type: String, default: 'GUEST' },
-  action: { type: String, required: true }, // Cth: "VIEW_PAGE", "CLICK_PROJECT"
-  details: { type: String, required: true }, // Cth: "Melihat kategori SOFTWARE DEVELOPMENT"
-  timestamp: { type: Date, default: Date.now }
-});
-
-module.exports = mongoose.model('Telemetry', TelemetrySchema);
+const schema = new mongoose.Schema({visitorName:{type:String,default:'GUEST',trim:true},visitorEmail:{type:String,lowercase:true,trim:true},identity:{type:mongoose.Schema.Types.Mixed,default:{}},action:{type:String,required:true,trim:true},details:{type:String,required:true,trim:true},metadata:{type:mongoose.Schema.Types.Mixed,default:{}},ipAddress:String,userAgent:String,timestamp:{type:Date,default:Date.now}},{timestamps:true}); schema.index({timestamp:-1}); module.exports=mongoose.model('Telemetry',schema);

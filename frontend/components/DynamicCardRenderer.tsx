@@ -5,7 +5,8 @@ import dynamic from 'next/dynamic';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, 
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  LineChart, Line, AreaChart, Area, ScatterChart, Scatter, ComposedChart, CartesianGrid, Legend
 } from 'recharts';
 
 const ResumeMap = dynamic(() => import('@/components/workspace/ResumeMap'), { ssr: false });
@@ -176,6 +177,25 @@ export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, 
               <Tooltip content={<CustomChartTooltip />} />
               <Radar name="Score" dataKey="A" stroke="#f43f5e" fill="#f43f5e" fillOpacity={0.3} className="hover:fill-cyan-400 hover:stroke-cyan-400 transition-colors" />
             </RadarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Generic chart cards are driven entirely by database payload/configuration. */}
+      {['CHART_LINE', 'CHART_AREA', 'CHART_SCATTER', 'CHART_COMPOSED', 'CHART_DONUT'].includes(card.type) && (
+        <div className="h-48 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            {card.type === 'CHART_LINE' ? (
+              <LineChart data={card.dataPayload || []}><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis dataKey={card.xKey || 'name'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Legend /><Line type="monotone" dataKey={card.yKey || 'value'} stroke="#22d3ee" strokeWidth={2} /></LineChart>
+            ) : card.type === 'CHART_AREA' ? (
+              <AreaChart data={card.dataPayload || []}><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis dataKey={card.xKey || 'name'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Area type="monotone" dataKey={card.yKey || 'value'} stroke="#34d399" fill="#34d399" fillOpacity={0.25} /></AreaChart>
+            ) : card.type === 'CHART_SCATTER' ? (
+              <ScatterChart><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis type="number" dataKey={card.xKey || 'x'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis type="number" dataKey={card.yKey || 'y'} tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Scatter data={card.dataPayload || []} fill="#f472b6" /></ScatterChart>
+            ) : card.type === 'CHART_COMPOSED' ? (
+              <ComposedChart data={card.dataPayload || []}><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis dataKey={card.xKey || 'name'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Bar dataKey={card.barKey || 'bar'} fill="#a78bfa" /><Line dataKey={card.lineKey || 'line'} stroke="#22d3ee" /><Area dataKey={card.areaKey || 'area'} fill="#34d399" fillOpacity={0.2} /></ComposedChart>
+            ) : (
+              <PieChart><Pie data={card.dataPayload || []} innerRadius={card.type === 'CHART_DONUT' ? 38 : 0} outerRadius={58} dataKey={card.yKey || 'value'} stroke="none">{(card.dataPayload || []).map((entry: any, index: number) => <Cell key={index} fill={entry.color || ['#22d3ee', '#a78bfa', '#34d399', '#f472b6'][index % 4]} />)}</Pie><Tooltip content={<CustomChartTooltip />} /></PieChart>
+            )}
           </ResponsiveContainer>
         </div>
       )}

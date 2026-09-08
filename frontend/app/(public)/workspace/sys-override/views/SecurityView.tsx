@@ -1,29 +1,59 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { glassBase, glassButton } from '../page';
 
 const glassInput = "bg-black/40 border border-white/10 px-3 py-2 text-xs font-mono text-white outline-none focus:border-rose-400 w-full";
 
 export default function SecurityView() {
   const [rules, setRules] = useState<any[]>([]); // Nanti disambung DB di Part 2
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ ipAddress: '', status: 'BANNED', reason: '' });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Simulasi CRUD Front-End sementara sebelum Part 2
-    setTimeout(() => {
-      setRules([{ ...formData, _id: Date.now().toString() }, ...rules]);
-      setFormData({ ipAddress: '', status: 'BANNED', reason: '' });
-      setIsSubmitting(false);
-    }, 800);
+  useEffect(() => { fetchRules(); }, []);
+
+  const fetchRules = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5555/api/security');
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Failed to load rules');
+      setRules(result.data);
+    } catch (error) {
+      console.error('Gagal mengambil aturan keamanan:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setRules(rules.filter(r => r._id !== id));
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('http://127.0.0.1:5555/api/security', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Failed to save rule');
+      setFormData({ ipAddress: '', status: 'BANNED', reason: '' });
+      fetchRules();
+    } catch (error) {
+      console.error('Gagal menyimpan aturan keamanan:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:5555/api/security/${id}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to revoke rule');
+      fetchRules();
+    } catch (error) {
+      console.error('Gagal mencabut aturan keamanan:', error);
+    }
   };
 
   return (

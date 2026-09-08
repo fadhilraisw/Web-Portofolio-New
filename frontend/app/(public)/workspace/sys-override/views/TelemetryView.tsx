@@ -50,7 +50,7 @@ export default function TelemetryView() {
           {!isLoading && logs.map((log, i) => (
             <div key={i} className="flex flex-col sm:flex-row gap-2 sm:gap-6 border-b border-emerald-500/10 pb-2 hover:bg-emerald-500/5 transition-colors">
               <span className="text-white/40 w-32 shrink-0">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
-              <span className="text-emerald-300 w-24 shrink-0">USER: {log.visitorName}</span>
+              <span className="text-emerald-300 w-56 shrink-0">USER: {log.visitorName || log.email || 'GUEST'} {log.visitorEmail && `(${log.visitorEmail})`}</span>
               <span className="text-cyan-400 w-24 shrink-0">[{log.action}]</span>
               <span className="text-white/80">{log.details}</span>
             </div>

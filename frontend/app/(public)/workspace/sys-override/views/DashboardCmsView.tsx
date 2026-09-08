@@ -173,6 +173,11 @@ export default function DashboardCmsView() {
                 <option value="CHART_BAR">CHART BAR</option>
                 <option value="CHART_PIE">CHART PIE</option>
                 <option value="CHART_RADAR">CHART RADAR</option>
+                <option value="CHART_LINE">CHART LINE</option>
+                <option value="CHART_AREA">CHART AREA</option>
+                <option value="CHART_SCATTER">CHART SCATTER</option>
+                <option value="CHART_COMPOSED">CHART COMPOSED</option>
+                <option value="CHART_DONUT">CHART DONUT</option>
                 <option value="MAP_BLOCK">MAP BLOCK</option>
                 <option value="HOVER_LIST">HOVER LIST</option>
                 <option value="TIMELINE">TIMELINE</option>

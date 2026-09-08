@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 export function SidebarLeft({ collapsed, setCollapsed, activeCategory, setActiveCategory, visitorName }: any) {
   const [dbCategories, setDbCategories] = useState<string[]>([]);
 
-  // FETCH DATA DATABASE UNTUK MENGETAHUI KATEGORI YANG TERSEDIA
+  // Fetch categories from the database so the public workspace stays data-driven.
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -25,7 +25,7 @@ export function SidebarLeft({ collapsed, setCollapsed, activeCategory, setActive
     fetchCategories();
   }, []);
 
-  // Menggabungkan kategori dasar dengan kategori baru yang kamu buat di Admin
+  // Keep the existing navigation categories while allowing CMS-created categories.
   const defaultCategories = [
     "DATA ENGINEERING", 
     "SOFTWARE DEVELOPMENT", 

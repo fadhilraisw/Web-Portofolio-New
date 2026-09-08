@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ProjectGridView } from './components/ProjectGridView'; // Sesuaikan lokasi impor jika beda
-import { ProjectDetailView } from './components/ProjectDetailView'; // Sesuaikan lokasi impor jika beda
+import { ProjectGridView } from '@/components/workspace/views/ProjectGridView';
+import { ProjectDetailView } from '@/components/workspace/views/ProjectDetailView';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
