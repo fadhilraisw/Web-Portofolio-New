@@ -50,7 +50,7 @@ export default function AssetsView() {
       </form>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className={`${glassBase} bg-white/5 items-center justify-center p-12 min-h-[300px]`}><h4 className="font-mono text-sm tracking-widest text-white uppercase mb-2">INITIALIZE UPLOAD SEQUENCE</h4><input onChange={(e) => setFile(e.target.files?.[0] || null)} type="file" accept=".pdf" className="font-mono text-[10px] text-white/50" /></div>
-        <div className={`${glassBase} bg-cyan-500/5 p-6 flex flex-col justify-center`}><h3 className="font-mono text-[10px] tracking-[0.2em] text-white/50 uppercase mb-6">CURRENT MASTER RECORD</h3><div className="flex flex-col mb-6"><span className="font-mono text-lg text-white uppercase">{asset?.cvFileUrl || 'NO CV UPLOADED'}</span></div>{asset?.cvFileUrl && <a href={asset.cvFileUrl} target="_blank" rel="noreferrer" className={`${glassButton} bg-white/10 text-white w-full text-center hover:bg-white hover:text-black`}>DOWNLOAD CURRENT RECORD</a>}</div>
+        <div className={`${glassBase} bg-cyan-500/5 p-6 flex flex-col justify-center`}><h3 className="font-mono text-[10px] tracking-[0.2em] text-white/50 uppercase mb-6">CURRENT MASTER RECORD</h3><div className="flex flex-col mb-6"><span className="font-mono text-lg text-white uppercase">{asset?.cvFileName || 'NO CV UPLOADED'}</span></div>{asset?.cvFileUrl && <a href={`${api}/api/assets/download`} download={asset.cvFileName || 'portfolio-cv.pdf'} className={`${glassButton} bg-white/10 text-white w-full text-center hover:bg-white hover:text-black`}>DOWNLOAD CURRENT RECORD</a>}</div>
       </div>
     </div>
   );

@@ -73,6 +73,7 @@ const HoverListItem = ({ label, desc }: { label: string, desc: string }) => (
 
 export function DashboardView({ visitor, visitorGoal, isHR, isTechLead }: any) {
   const [cards, setCards] = useState<any[]>([]);
+  const [resumeUrl, setResumeUrl] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -90,6 +91,12 @@ export function DashboardView({ visitor, visitorGoal, isHR, isTechLead }: any) {
       }
     };
     fetchCards();
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5555'}/api/assets`)
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.success && result.data?.cvFileUrl) setResumeUrl(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5555'}/api/assets/download`);
+      })
+      .catch((error) => console.error('Gagal mengambil CV publik:', error));
   }, []);
 
   if (isLoading) {
@@ -178,9 +185,9 @@ export function DashboardView({ visitor, visitorGoal, isHR, isTechLead }: any) {
         {isVisible('TARGET_ROLE') && (
           <div className={`${glassBase} items-center justify-center cursor-pointer group`}>
             <p className="mb-4 text-center font-mono text-[9px] tracking-[0.2em] text-white/60 uppercase">TAILORED FOR {visitorGoal || 'EVALUATION'}</p>
-            <button className="w-full rounded-none border-0 px-4 py-3 font-mono text-[10px] tracking-widest text-black bg-white group-hover:bg-cyan-400 transition-colors uppercase shadow-[inset_2px_2px_2px_rgba(255,255,255,1),_5px_5px_15px_rgba(0,0,0,0.4)]">
+            <a href={resumeUrl || '#'} download={resumeUrl ? 'portfolio-cv.pdf' : undefined} onClick={(event) => { if (!resumeUrl) event.preventDefault(); }} className="block w-full rounded-none border-0 px-4 py-3 text-center font-mono text-[10px] tracking-widest text-black bg-white group-hover:bg-cyan-400 transition-colors uppercase shadow-[inset_2px_2px_2px_rgba(255,255,255,1),_5px_5px_15px_rgba(0,0,0,0.4)]">
               {cTarget?.dataPayload?.actionText || 'DOWNLOAD MASTER CV'}
-            </button>
+            </a>
           </div>
         )}
       </div>
