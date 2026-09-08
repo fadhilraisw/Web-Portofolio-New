@@ -1,6 +1,7 @@
 require('dotenv').config();
 const path=require('path'); const express=require('express'); const mongoose=require('mongoose'); const cors=require('cors'); const cookieParser=require('cookie-parser'); const errorHandler=require('./middleware/error');
 const app=express();
+app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : false);
 const origins=(process.env.CORS_ORIGIN||'http://localhost:3000,http://127.0.0.1:3000').split(',').map(x=>x.trim());
 app.use(cors({origin:(origin,cb)=>!origin||origins.includes(origin)?cb(null,true):cb(new Error('Origin not allowed')),credentials:true})); app.use(express.json({limit:'1mb'})); app.use(cookieParser()); app.use('/uploads',express.static(path.resolve(__dirname,'uploads')));
 app.get('/health',(req,res)=>res.json({success:true,status:'ok',database:mongoose.connection.readyState===1?'connected':'disconnected'})); app.get('/',(req,res)=>res.json({success:true,message:'Backend API online'}));
