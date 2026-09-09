@@ -1,29 +1,5 @@
-const express = require('express');
-const router = express.Router();
-const Telemetry = require('../models/Telemetry');
-
-// Menerima data dari Frontend (User)
-router.post('/', async (req, res) => {
-  try {
-    const log = await Telemetry.create(req.body);
-    res.status(201).json({ success: true, data: log });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
-});
-
-// Menampilkan log di Admin Panel
-router.get('/', async (req, res) => {
-  try {
-    const logs = await Telemetry.find().sort({ timestamp: -1 }).limit(100);
-    res.status(200).json({ success: true, data: logs });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
-});
-
-// Menghapus semua log (Clear History)
-router.delete('/clear', async (req, res) => {
-  try {
-    await Telemetry.deleteMany({});
-    res.status(200).json({ success: true, message: 'Log dibersihkan' });
-  } catch (error) { res.status(500).json({ success: false, message: error.message }); }
-});
-
-module.exports = router;
+const express=require('express'); const Telemetry=require('../models/Telemetry'); const {asyncHandler,fail,isValidId}=require('../utils/http'); const r=express.Router();
+const identity=['name','age','position','company','goal','email'];
+r.post('/',asyncHandler(async(req,res)=>{const body=req.body||{}; const data={...body,ipAddress:req.ip,userAgent:req.get('user-agent')}; identity.forEach(k=>{if(data[k]===undefined&&body.identity?.[k]!==undefined)data[k]=body.identity[k];}); if(!data.action||data.details===undefined)return fail(res,400,'action and details are required'); res.status(201).json({success:true,data:await Telemetry.create(data)});}));
+r.get('/',asyncHandler(async(req,res)=>{const limit=Math.min(Math.max(Number(req.query.limit)||100,1),500); const clauses=[]; const email=req.query.email; const session=req.query.session||req.query.sessionId||req.query.visitorId; if(email)clauses.push({$or:[{email:email.toLowerCase()},{visitorEmail:email.toLowerCase()}]}); if(session)clauses.push({$or:[{sessionId:session},{visitorId:session}]}); if(req.query.action)clauses.push({action:req.query.action}); const from=req.query.from||req.query.startDate||req.query.date; const to=req.query.to||req.query.endDate||req.query.date; if(from||to){const timestamp={}; if(from)timestamp.$gte=new Date(from); if(to)timestamp.$lte=req.query.date?new Date(`${to}T23:59:59.999Z`):new Date(to); if(Number.isNaN(timestamp.$gte?.getTime())||Number.isNaN(timestamp.$lte?.getTime()))return fail(res,400,'Invalid date filter'); clauses.push({timestamp});} const filter=clauses.length?{$and:clauses}:{}; res.json({success:true,data:await Telemetry.find(filter).sort({timestamp:-1}).limit(limit)});}));
+r.delete('/clear',asyncHandler(async(req,res)=>{const x=await Telemetry.deleteMany({}); res.json({success:true,data:{deletedCount:x.deletedCount}});})); r.delete('/:id',asyncHandler(async(req,res)=>{if(!isValidId(req.params.id))return fail(res,400,'Invalid id'); const x=await Telemetry.findByIdAndDelete(req.params.id); if(!x)return fail(res,404,'Not found'); res.json({success:true,data:x});})); module.exports=r;

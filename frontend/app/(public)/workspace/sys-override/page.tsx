@@ -4,10 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-import VisualsView from './views/VisualsView';
-import MetricsView from './views/MetricsView';
 import DashboardCmsView from './views/DashboardCmsView';
-import TrackerView from './views/TrackerView';
+import LogisticsView from './views/LogisticsView';
 import TelemetryView from './views/TelemetryView';
 import AiCortexView from './views/AiCortexView';
 import AssetsView from './views/AssetsView';
@@ -17,9 +15,7 @@ import SecurityView from './views/SecurityView';
 const ADMIN_MODULES = [
   { id: 'projects', label: 'COMMAND CENTER (PROJECTS)' },
   { id: 'dashboard_cms', label: 'DASHBOARD ENGINE (TEXT & TIMELINE)' },
-  { id: 'visuals', label: 'VISUALIZATIONS & MAP (DATA)' },
-  { id: 'metrics', label: 'MCU & BEHAVIORAL METRICS' },
-  { id: 'tracker', label: 'LOGISTICS & TRACKING' },
+  { id: 'tracker', label: 'JOB APPLICATIONS & TASKS' },
   { id: 'telemetry', label: 'TELEMETRY & LOGS' },
   { id: 'ai_cortex', label: 'AI CORTEX (STRATEGY)' },
   { id: 'assets', label: 'ASSET & RESUME MASTER' },
@@ -44,10 +40,8 @@ export default function AdminPanel() {
 
   const renderActiveModule = () => {
     switch (activeModule) {
-      case 'visuals': return <VisualsView />;
-      case 'metrics': return <MetricsView />;
       case 'dashboard_cms': return <DashboardCmsView />;
-      case 'tracker': return <TrackerView />;
+      case 'tracker': return <LogisticsView />;
       case 'telemetry': return <TelemetryView />;
       case 'ai_cortex': return <AiCortexView />;
       case 'assets': return <AssetsView />;
@@ -83,7 +77,7 @@ export default function AdminPanel() {
         </button>
       </aside>
 
-      <main className="flex-1 flex flex-col h-[calc(100vh-4rem)] z-10">
+      <main className="flex-1 min-w-0 flex flex-col h-[calc(100vh-4rem)] z-10 max-w-[1600px]">
         <header className="mb-6 flex items-center justify-between">
           <h2 className="font-mono text-xl tracking-widest text-cyan-400 uppercase drop-shadow-[0_0_5px_rgba(6,182,212,0.4)]">
             {ADMIN_MODULES.find(m => m.id === activeModule)?.label}
@@ -93,7 +87,7 @@ export default function AdminPanel() {
             <span className="font-mono text-[10px] tracking-widest text-white/50 uppercase">SYSTEM ONLINE</span>
           </div>
         </header>
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 pb-10">
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-1 sm:px-2 lg:px-4 pb-10">
           {renderActiveModule()}
         </div>
       </main>

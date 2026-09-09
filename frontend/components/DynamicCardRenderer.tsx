@@ -5,7 +5,8 @@ import dynamic from 'next/dynamic';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, 
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
+  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  LineChart, Line, AreaChart, Area, ScatterChart, Scatter, ComposedChart, CartesianGrid, Legend
 } from 'recharts';
 
 const ResumeMap = dynamic(() => import('@/components/workspace/ResumeMap'), { ssr: false });
@@ -38,6 +39,9 @@ const HoverListItem = ({ label, desc }: { label: string, desc: string }) => (
 
 export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, isTechLead }: any) {
   if (!card.isVisible) return null;
+  const firstDatum = Array.isArray(card.dataPayload) ? card.dataPayload[0] : null;
+  const inferredValueKey = firstDatum?.score !== undefined ? 'score' : firstDatum?.value !== undefined ? 'value' : 'value';
+  const valueKey = card.valueKey || inferredValueKey;
 
   // Rumus ukuran Grid
   const gridSpan = `md:col-span-${card.colSpan > 6 ? (card.colSpan === 12 ? 'full' : '2') : '1'} xl:col-span-${card.colSpan === 12 ? 'full' : Math.ceil(card.colSpan / 4)}`;
@@ -136,7 +140,7 @@ export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, 
               <XAxis type="number" hide />
               <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 8, fontFamily: 'monospace' }} width={90} />
               <Tooltip content={<CustomChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.1)' }} />
-              <Bar dataKey="score" fill="#ffffff" radius={[0, 0, 0, 0]} barSize={8} className="transition-all duration-300 hover:fill-cyan-400" />
+              <Bar dataKey={valueKey} fill="#ffffff" radius={[0, 0, 0, 0]} barSize={8} className="transition-all duration-300 hover:fill-cyan-400" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -180,6 +184,25 @@ export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, 
         </div>
       )}
 
+      {/* Generic chart cards are driven entirely by database payload/configuration. */}
+      {['CHART_LINE', 'CHART_AREA', 'CHART_SCATTER', 'CHART_COMPOSED', 'CHART_DONUT'].includes(card.type) && (
+        <div className="h-48 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            {card.type === 'CHART_LINE' ? (
+              <LineChart data={card.dataPayload || []}><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis dataKey={card.xKey || 'name'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Legend /><Line type="monotone" dataKey={card.yKey || 'value'} stroke="#22d3ee" strokeWidth={2} /></LineChart>
+            ) : card.type === 'CHART_AREA' ? (
+              <AreaChart data={card.dataPayload || []}><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis dataKey={card.xKey || 'name'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Area type="monotone" dataKey={card.yKey || 'value'} stroke="#34d399" fill="#34d399" fillOpacity={0.25} /></AreaChart>
+            ) : card.type === 'CHART_SCATTER' ? (
+              <ScatterChart><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis type="number" dataKey={card.xKey || 'x'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis type="number" dataKey={card.yKey || 'y'} tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Scatter data={card.dataPayload || []} fill="#f472b6" /></ScatterChart>
+            ) : card.type === 'CHART_COMPOSED' ? (
+              <ComposedChart data={card.dataPayload || []}><CartesianGrid stroke="rgba(255,255,255,0.1)" /><XAxis dataKey={card.xKey || 'name'} tick={{ fill: '#aaa', fontSize: 8 }} /><YAxis tick={{ fill: '#aaa', fontSize: 8 }} /><Tooltip content={<CustomChartTooltip />} /><Bar dataKey={card.barKey || 'bar'} fill="#a78bfa" /><Line dataKey={card.lineKey || 'line'} stroke="#22d3ee" /><Area dataKey={card.areaKey || 'area'} fill="#34d399" fillOpacity={0.2} /></ComposedChart>
+            ) : (
+              <PieChart><Pie data={card.dataPayload || []} innerRadius={card.type === 'CHART_DONUT' ? 38 : 0} outerRadius={58} dataKey={card.yKey || valueKey} stroke="none">{(card.dataPayload || []).map((entry: any, index: number) => <Cell key={index} fill={entry.color || ['#22d3ee', '#a78bfa', '#34d399', '#f472b6'][index % 4]} />)}</Pie><Tooltip content={<CustomChartTooltip />} /></PieChart>
+            )}
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {/* 8. MAP BLOCK */}
       {card.type === 'MAP_BLOCK' && (
         <div className="w-full h-full flex flex-col">
@@ -188,7 +211,7 @@ export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, 
             <span className="font-mono text-[8px] tracking-widest text-cyan-400 uppercase animate-pulse">LIVE MAP DATA</span>
           </div>
           <div className="relative h-64 w-full z-0 opacity-80 transition-opacity duration-500 group-hover/cardblock:opacity-100">
-            <ResumeMap />
+            <ResumeMap pins={card.dataPayload?.pins} />
           </div>
         </div>
       )}

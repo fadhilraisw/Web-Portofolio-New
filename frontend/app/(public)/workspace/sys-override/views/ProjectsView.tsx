@@ -15,8 +15,8 @@ export default function ProjectsView() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    title: '', category: 'SOFTWARE DEVELOPMENT', type: 'APP_DEPLOYMENT', 
-    metrics: '', status: 'STABLE ONLINE', githubUrl: '', liveDemoUrl: ''
+    title: '', category: 'SOFTWARE DEVELOPMENT', contentKind: 'RUNNABLE_PROJECT', type: 'APP_DEPLOYMENT',
+    description: '', environment: '', metrics: '', status: 'STABLE ONLINE', githubUrl: '', liveDemoUrl: ''
   });
 
   useEffect(() => { fetchProjects(); }, []);
@@ -37,7 +37,8 @@ export default function ProjectsView() {
     setEditingId(p._id);
     setFormData({
       title: p.title, category: p.category, type: p.type,
-      metrics: p.metrics, status: p.status, githubUrl: p.githubUrl || '', liveDemoUrl: p.liveDemoUrl || ''
+      contentKind: p.contentKind || (p.pdfFileUrl ? 'PAPER_FILE' : 'RUNNABLE_PROJECT'),
+      description: p.description || '', environment: p.environment || '', metrics: p.metrics, status: p.status, githubUrl: p.githubUrl || '', liveDemoUrl: p.liveDemoUrl || ''
     });
     setFile(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -46,7 +47,7 @@ export default function ProjectsView() {
   const cancelEdit = () => {
     setIsEditing(false);
     setEditingId(null);
-    setFormData({ title: '', category: 'SOFTWARE DEVELOPMENT', type: 'APP_DEPLOYMENT', metrics: '', status: 'STABLE ONLINE', githubUrl: '', liveDemoUrl: '' });
+    setFormData({ title: '', category: 'SOFTWARE DEVELOPMENT', contentKind: 'RUNNABLE_PROJECT', type: 'APP_DEPLOYMENT', description: '', environment: '', metrics: '', status: 'STABLE ONLINE', githubUrl: '', liveDemoUrl: '' });
     setFile(null);
   };
 
@@ -60,10 +61,10 @@ export default function ProjectsView() {
 
     const payload = new FormData();
     payload.append('title', formData.title); payload.append('category', formData.category);
-    payload.append('type', formData.type); payload.append('metrics', formData.metrics);
+    payload.append('type', formData.type); payload.append('contentKind', formData.contentKind); payload.append('description', formData.description); payload.append('environment', formData.environment); payload.append('metrics', formData.metrics);
     payload.append('status', formData.status); payload.append('githubUrl', formData.githubUrl);
     payload.append('liveDemoUrl', formData.liveDemoUrl);
-    if (file) payload.append('pdfFile', file);
+    if (file) payload.append('attachmentFile', file);
 
     try {
       const url = isEditing ? `http://127.0.0.1:5555/api/projects/${editingId}` : 'http://127.0.0.1:5555/api/projects';
@@ -96,7 +97,7 @@ export default function ProjectsView() {
         <p className="font-mono text-[9px] text-white/50 uppercase leading-relaxed">TAMBAHKAN ATAU EDIT PORTOFOLIO. DATA AKAN LANGSUNG MUNCUL DI DASHBOARD PENGUNJUNG SESUAI KATEGORI.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60 relative`}>
+      <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60 relative p-6`}>
         {isEditing && <div className="absolute -top-3 right-6 bg-amber-500 px-4 py-1 text-black font-mono text-[9px] tracking-widest font-bold animate-pulse">EDIT MODE ACTIVE</div>}
         
         <div className="flex justify-between items-center border-b border-white/10 pb-4 mb-6">
@@ -121,19 +122,37 @@ export default function ProjectsView() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-[9px] text-white/50 uppercase">ASSET TYPE</label>
-            <input value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={glassInput} required placeholder="Misal: APP_DEPLOYMENT" />
+            <label className="font-mono text-[9px] text-white/50 uppercase">CONTENT TYPE</label>
+            <select value={formData.contentKind} onChange={e => setFormData({...formData, contentKind: e.target.value, type: e.target.value === 'PAPER_FILE' ? 'RESEARCH_PAPER' : 'APP_DEPLOYMENT'})} className={glassInput}>
+              <option value="RUNNABLE_PROJECT">RUNNABLE PROJECT</option>
+              <option value="PAPER_FILE">PAPER / FILE</option>
+            </select>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-[9px] text-white/50 uppercase">PRIMARY METRIC / SHORT DESC</label>
+            <label className="font-mono text-[9px] text-white/50 uppercase">TYPE LABEL</label>
+            <input value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className={glassInput} required placeholder="RESEARCH_PAPER / APP_DEPLOYMENT" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-mono text-[9px] text-white/50 uppercase">PRIMARY METRIC</label>
             <input value={formData.metrics} onChange={e => setFormData({...formData, metrics: e.target.value})} className={glassInput} required placeholder="Misal: 98% Accuracy" />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="font-mono text-[9px] text-white/50 uppercase">DESCRIPTION</label>
+            <input value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className={glassInput} placeholder="Ringkasan untuk visitor..." />
           </div>
 
           <div className="flex flex-col gap-2">
             <label className="font-mono text-[9px] text-white/50 uppercase">STATUS</label>
             <input value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className={glassInput} required placeholder="Misal: STABLE ONLINE" />
           </div>
+
+          {formData.contentKind === 'RUNNABLE_PROJECT' && <div className="flex flex-col gap-2 md:col-span-2">
+            <label className="font-mono text-[9px] text-cyan-400 uppercase">ENVIRONMENT / STACK</label>
+            <input value={formData.environment} onChange={e => setFormData({...formData, environment: e.target.value})} className={glassInput} placeholder="Next.js, Node.js, MongoDB..." />
+          </div>}
 
           <div className="flex flex-col gap-2">
             <label className="font-mono text-[9px] text-white/50 uppercase">GITHUB REPOSITORY URL</label>
@@ -146,8 +165,8 @@ export default function ProjectsView() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-[9px] text-emerald-400 uppercase">UPLOAD NEW PDF</label>
-            <input type="file" accept="application/pdf" onChange={handleFileChange} className="font-mono text-[10px] text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-[9px] file:font-mono file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30 cursor-pointer" />
+            <label className="font-mono text-[9px] text-emerald-400 uppercase">{formData.contentKind === 'PAPER_FILE' ? 'UPLOAD PAPER / IMAGE' : 'OPTIONAL DOCUMENT'}</label>
+            <input type="file" accept={formData.contentKind === 'PAPER_FILE' ? 'application/pdf,image/png,image/jpeg,image/webp' : 'application/pdf'} onChange={handleFileChange} className="font-mono text-[10px] text-white/60 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-[9px] file:font-mono file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30 cursor-pointer" />
           </div>
         </div>
 
@@ -173,7 +192,7 @@ export default function ProjectsView() {
             <div className="col-span-3 font-mono text-xs text-white uppercase truncate pr-4">{p.title}</div>
             <div className="col-span-3 font-mono text-[9px] text-cyan-400 uppercase truncate pr-4">{p.category}</div>
             <div className="col-span-2 font-mono text-[9px] text-white/60 uppercase">{p.type}</div>
-            <div className="col-span-2 font-mono text-[9px] uppercase">{p.pdfFileUrl ? <span className="text-emerald-400">PDF ATTACHED</span> : <span className="text-white/30">NONE</span>}</div>
+            <div className="col-span-2 font-mono text-[9px] uppercase">{p.contentKind === 'PAPER_FILE' ? <span className="text-fuchsia-400">PAPER / FILE</span> : <span className="text-cyan-400">RUNNABLE</span>}<span className="block text-white/30">{p.attachmentFileName || 'NO FILE'}</span></div>
             <div className="col-span-2 flex justify-end gap-2">
               <button onClick={() => handleEditClick(p)} className="px-3 py-1 bg-amber-500/10 font-mono text-[9px] text-amber-400 border border-amber-500/20 hover:bg-amber-500 hover:text-black uppercase transition-colors">EDIT</button>
               <button onClick={() => handleDelete(p._id)} className="px-3 py-1 bg-rose-500/10 font-mono text-[9px] text-rose-400 border border-rose-500/20 hover:bg-rose-500 hover:text-black uppercase transition-colors">DEL</button>

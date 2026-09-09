@@ -1,46 +1,12 @@
 require('dotenv').config();
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-
-const app = express();
-
-// --- MIDDLEWARE ---
-// Mengizinkan frontend (Next.js) mengakses backend ini
-app.use(cors()); 
-// Mengizinkan Express membaca payload berformat JSON dari frontend
-app.use(express.json()); 
-
-// Buka folder 'uploads' ke publik agar file PDF bisa diakses langsung via URL
-app.use('/uploads', express.static('uploads'));
-
-// --- KONEKSI MONGODB ---
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log('✅ DATABASE CORTEX ONLINE (MongoDB Connected)');
-  })
-  .catch((err) => {
-    console.error('❌ MONGODB CONNECTION FAILED:', err.message);
-  });
-
-// --- IMPORT ROUTER ---
-const projectRoutes = require('./routes/projectRoutes');
-const cardRoutes = require('./routes/cardRoutes');
-const logisticRoutes = require('./routes/logisticRoutes'); // Diimport dengan rapi
-
-// --- DAFTARKAN RUTE API ---
-app.use('/api/projects', projectRoutes);
-app.use('/api/cards', cardRoutes);
-app.use('/api/logistics', logisticRoutes);
-app.use('/api/telemetry', require('./routes/telemetryRoutes'));
-
-// Tes Rute Dasar (Mengecek apakah server hidup)
-app.get('/', (req, res) => {
-  res.send('SYS-OVERRIDE BACKEND API IS RUNNING...');
-});
-
-// --- JALANKAN SERVER ---
-const PORT = process.env.PORT || 5555;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server berjalan di http://127.0.0.1:${PORT}`);
-});
+const path=require('path'); const express=require('express'); const mongoose=require('mongoose'); const cors=require('cors'); const cookieParser=require('cookie-parser'); const errorHandler=require('./middleware/error');
+const app=express();
+app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : false);
+const origins=(process.env.CORS_ORIGIN||'http://localhost:3000,http://127.0.0.1:3000').split(',').map(x=>x.trim());
+app.use(cors({origin:(origin,cb)=>!origin||origins.includes(origin)?cb(null,true):cb(new Error('Origin not allowed')),credentials:true})); app.use(express.json({limit:'1mb'})); app.use(cookieParser()); app.use(require('./middleware/security')); app.use(require('./middleware/requestTelemetry')); app.use('/uploads',express.static(path.resolve(__dirname,'uploads')));
+app.get('/health',(req,res)=>res.json({success:true,status:'ok',database:mongoose.connection.readyState===1?'connected':'disconnected'})); app.get('/',(req,res)=>res.json({success:true,message:'Backend API online'}));
+app.use('/api/projects',require('./routes/projectRoutes')); app.use('/api/cards',require('./routes/cardRoutes')); app.use('/api/logistics',require('./routes/logisticRoutes')); app.use('/api/telemetry',require('./routes/telemetryRoutes')); app.use('/api/security',require('./routes/securityRoutes')); app.use('/api/assets',require('./routes/assetRoutes')); app.use('/api/ai-cortex',require('./routes/cortexRoutes')); app.use('/api/auth',require('./routes/authRoutes'));
+app.use('/api/visitor-sessions',require('./routes/visitorSessionRoutes'));
+app.use((req,res)=>res.status(404).json({success:false,message:'Route not found'})); app.use(errorHandler);
+if(process.env.MONGODB_URI){mongoose.connect(process.env.MONGODB_URI).then(()=>console.log('MongoDB connected')).catch(err=>console.error('MongoDB connection failed:',err.message));} else console.warn('MONGODB_URI is not configured');
+const PORT=process.env.PORT||5555; if(require.main===module)app.listen(PORT,'0.0.0.0',()=>console.log(`API listening on ${PORT}`)); module.exports=app;

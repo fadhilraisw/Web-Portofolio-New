@@ -2,15 +2,58 @@ import { useState } from 'react';
 import { glassBase, glassButton } from '../page';
 
 const CHART_LIBRARY = [
-  { id: 'BAR', label: 'BAR CHART (HORIZONTAL/VERTICAL)' },
-  { id: 'PIE', label: 'PIE / DONUT CHART' },
-  { id: 'RADAR', label: 'RADAR / SPIDER WEB' },
-  { id: 'WAFFLE', label: 'WAFFLE / DOT MATRIX' }
+  { id: 'CHART_BAR', label: 'BAR CHART (HORIZONTAL/VERTICAL)' },
+  { id: 'CHART_PIE', label: 'PIE / DONUT CHART' },
+  { id: 'CHART_LINE', label: 'LINE CHART' },
+  { id: 'CHART_AREA', label: 'AREA CHART' },
+  { id: 'CHART_SCATTER', label: 'SCATTER CHART' },
+  { id: 'CHART_COMPOSED', label: 'COMPOSED CHART' },
+  { id: 'CHART_RADAR', label: 'RADAR / SPIDER WEB' }
 ];
 
 export default function VisualsView() {
-  const [selectedBuilderChart, setSelectedBuilderChart] = useState('BAR');
+  const [selectedBuilderChart, setSelectedBuilderChart] = useState('CHART_BAR');
   const [isUploadingExcel, setIsUploadingExcel] = useState(false);
+  const [rows, setRows] = useState([{ name: '', value: '', color: '#00e5ff' }]);
+  const [title, setTitle] = useState('NEW VISUALIZATION');
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const publishChart = async (event: React.SyntheticEvent) => {
+    event.preventDefault();
+    const dataPayload = rows.filter((row) => row.name.trim()).map((row) => ({ ...row, value: Number(row.value) || 0 }));
+    if (!title.trim() || dataPayload.length === 0) {
+      setMessage('TITLE AND AT LEAST ONE DATA ROW ARE REQUIRED.');
+      return;
+    }
+    setIsPublishing(true);
+    setMessage('');
+    try {
+      const response = await fetch('http://127.0.0.1:5555/api/cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: `VISUAL_${Date.now()}`,
+          title: title.trim(),
+          type: selectedBuilderChart,
+          desc: 'Published visualization',
+          colSpan: 4,
+          order: Date.now(),
+          isVisible: true,
+          valueKey: 'value',
+          dataPayload
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'Publish failed');
+      setMessage('VISUALIZATION PUBLISHED TO DASHBOARD.');
+      setRows([{ name: '', value: '', color: '#00e5ff' }]);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message.toUpperCase() : 'PUBLISH FAILED.');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500">
@@ -20,7 +63,7 @@ export default function VisualsView() {
             <h3 className="font-mono text-sm tracking-[0.2em] text-cyan-400 uppercase mb-1">TABLEAU-MODE: VISUALIZATION BUILDER</h3>
             <p className="font-mono text-[9px] text-white/50 uppercase">SELECT CHART. INJECT MANUALLY OR UPLOAD .XLSX TO AUTOGENERATE.</p>
           </div>
-          <button className={`${glassButton} bg-cyan-500 text-black hover:bg-white hover:text-black`}>PUBLISH TO DASHBOARD</button>
+          <button onClick={publishChart} disabled={isPublishing} className={`${glassButton} bg-cyan-500 text-black hover:bg-white hover:text-black disabled:opacity-50`}>{isPublishing ? 'PUBLISHING...' : 'PUBLISH TO DASHBOARD'}</button>
         </div>
         <div className="flex flex-col lg:flex-row min-h-[400px]">
           <div className="w-full lg:w-1/3 border-r border-white/10 bg-black/20 p-4 overflow-y-auto max-h-[400px] custom-scrollbar">
@@ -35,12 +78,13 @@ export default function VisualsView() {
             <div className="flex justify-between items-end mb-6 border-b border-white/10 pb-4">
               <div>
                 <p className="font-mono text-[10px] text-cyan-400 uppercase tracking-widest mb-1">ACTIVE: {CHART_LIBRARY.find(c => c.id === selectedBuilderChart)?.label}</p>
+                <input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-2 bg-black/40 border border-white/10 px-2 py-1 font-mono text-xs text-white" />
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setIsUploadingExcel(!isUploadingExcel)} className={`${glassButton} bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black px-3 py-2`}>
                   {isUploadingExcel ? 'CANCEL UPLOAD' : 'IMPORT .XLSX / .CSV'}
                 </button>
-                <button className="font-mono text-[9px] text-white hover:text-cyan-400 bg-white/5 px-3 py-2 border border-white/10">+ ADD ROW</button>
+                <button type="button" onClick={() => setRows([...rows, { name: '', value: '', color: '#00e5ff' }])} className="font-mono text-[9px] text-white hover:text-cyan-400 bg-white/5 px-3 py-2 border border-white/10">+ ADD ROW</button>
               </div>
             </div>
             {isUploadingExcel ? (
@@ -52,16 +96,18 @@ export default function VisualsView() {
             ) : (
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 <div className="grid grid-cols-12 gap-2 border-b border-white/10 pb-2 mb-2 font-mono text-[9px] text-white/50 uppercase"><div className="col-span-4">DATA LABEL</div><div className="col-span-3">VALUE</div><div className="col-span-3">COLOR (HEX)</div><div className="col-span-2 text-right">ACTION</div></div>
-                {[1, 2, 3].map((row) => (
-                  <div key={row} className="grid grid-cols-12 gap-2 mb-2">
-                    <input type="text" placeholder="e.g. Next.js" className="col-span-4 bg-black/40 border border-white/10 px-2 py-1.5 font-mono text-[10px] text-white outline-none" />
-                    <input type="number" placeholder="e.g. 95" className="col-span-3 bg-black/40 border border-white/10 px-2 py-1.5 font-mono text-[10px] text-white outline-none" />
-                    <input type="text" placeholder="#00e5ff" className="col-span-3 bg-black/40 border border-white/10 px-2 py-1.5 font-mono text-[10px] text-white outline-none" />
-                    <div className="col-span-2 flex justify-end items-center"><button className="text-rose-500 text-[10px] font-mono">DEL</button></div>
+                {rows.map((row, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 mb-2">
+                    <input value={row.name} onChange={(e) => setRows(rows.map((item, i) => i === index ? { ...item, name: e.target.value } : item))} type="text" placeholder="e.g. Next.js" className="col-span-4 bg-black/40 border border-white/10 px-2 py-1.5 font-mono text-[10px] text-white outline-none" />
+                    <input value={row.value} onChange={(e) => setRows(rows.map((item, i) => i === index ? { ...item, value: e.target.value } : item))} type="number" placeholder="e.g. 95" className="col-span-3 bg-black/40 border border-white/10 px-2 py-1.5 font-mono text-[10px] text-white outline-none" />
+                    <input value={row.color} onChange={(e) => setRows(rows.map((item, i) => i === index ? { ...item, color: e.target.value } : item))} type="text" placeholder="#00e5ff" className="col-span-3 bg-black/40 border border-white/10 px-2 py-1.5 font-mono text-[10px] text-white outline-none" />
+                    <div className="col-span-2 flex justify-end items-center"><button onClick={() => setRows(rows.filter((_, i) => i !== index))} className="text-rose-500 text-[10px] font-mono">DEL</button></div>
                   </div>
                 ))}
+                <button onClick={() => setRows([...rows, { name: '', value: '', color: '#00e5ff' }])} className="font-mono text-[9px] text-white hover:text-cyan-400 bg-white/5 px-3 py-2 border border-white/10">+ ADD ROW</button>
               </div>
             )}
+            {message && <p className={`mt-4 font-mono text-[9px] uppercase ${message.includes('PUBLISHED') ? 'text-emerald-400' : 'text-rose-400'}`}>{message}</p>}
           </div>
         </div>
       </div>

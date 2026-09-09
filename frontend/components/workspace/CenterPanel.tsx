@@ -39,7 +39,10 @@ export function CenterPanel({ activeCategory, isLoading, visitorGoal, visitor }:
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            sessionId: typeof window !== 'undefined' ? window.localStorage.getItem('visitor_session_id') : '',
             visitorName: visitor?.name || 'GUEST',
+            visitorEmail: visitor?.email || '',
+            identity: visitor || {},
             action: 'NAVIGATION',
             details: `Akses direktori: ${activeCategory.toUpperCase()}`
           })

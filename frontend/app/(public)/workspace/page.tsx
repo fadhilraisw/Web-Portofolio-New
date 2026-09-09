@@ -17,7 +17,33 @@ export default function Workspace() {
   const [isLocalLoading, setIsLocalLoading] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => setIsGlobalLoading(false), 900); 
+    const timeout = setTimeout(() => setIsGlobalLoading(false), 900);
+    const sessionId = window.localStorage.getItem('visitor_session_id');
+    if (sessionId && visitor.email) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5555'}/api/visitor-sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, identity: visitor })
+      }).catch((error) => console.error('Unable to start visitor session:', error));
+    }
+    return () => clearTimeout(timeout);
+  }, [visitor]);
+
+  useEffect(() => {
+    const sessionId = window.localStorage.getItem('visitor_session_id');
+    if (!sessionId) return;
+    const api = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5555';
+    const heartbeat = window.setInterval(() => {
+      fetch(`${api}/api/visitor-sessions/${sessionId}/heartbeat`, { method: 'PATCH' }).catch((error) => console.error('Unable to update visitor session:', error));
+    }, 30000);
+    const endSession = () => {
+      fetch(`${api}/api/visitor-sessions/${sessionId}/end`, { method: 'POST', keepalive: true }).catch(() => undefined);
+    };
+    window.addEventListener('beforeunload', endSession);
+    return () => {
+      window.clearInterval(heartbeat);
+      window.removeEventListener('beforeunload', endSession);
+    };
   }, []);
 
   const handleCategoryChange = (key: string) => {
@@ -57,6 +83,7 @@ export default function Workspace() {
           activeCategory={activeCategory} 
           isLoading={isLocalLoading} 
           visitorGoal={visitor.goal}
+          visitor={visitor}
         />
         
         <SidebarRight 

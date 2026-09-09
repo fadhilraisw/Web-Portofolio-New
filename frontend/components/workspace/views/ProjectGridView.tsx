@@ -24,7 +24,7 @@ export function ProjectGridView({ projects, onSelectProject }: { projects: any[]
         >
           <div className="relative z-10">
             <p className="mb-2 font-mono text-[9px] tracking-[0.2em] text-white/50 uppercase">
-               {project.type}
+               {project.contentKind === 'PAPER_FILE' ? 'PAPERS & FILES' : project.type}
             </p>
             <h3 className="font-mono text-sm sm:text-base tracking-wide text-white uppercase">{project.title}</h3>
             <p className="mt-4 font-mono text-[10px] tracking-widest text-white/60 uppercase line-clamp-2">{project.metrics}</p>

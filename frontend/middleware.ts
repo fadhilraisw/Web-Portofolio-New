@@ -3,6 +3,13 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const url = request.nextUrl.pathname;
+
+  if (url === '/workspace' || url.startsWith('/workspace/projects')) {
+    const visitorSession = request.cookies.get('session') || request.cookies.get('visitor_session');
+    if (!visitorSession) {
+      return NextResponse.redirect(new URL('/onboarding', request.url));
+    }
+  }
   
   // 1. Amankan rute /workspace/sys-override
   // Kita pastikan satpam bekerja dengan mencetak log (Kamu bisa lihat di terminal VSCode)
@@ -26,5 +33,5 @@ export function middleware(request: NextRequest) {
 
 // Konfigurasi agar Middleware HANYA berjalan saat rute ini diakses
 export const config = {
-  matcher: ['/workspace/sys-override/:path*'],
+  matcher: ['/workspace/:path*'],
 };

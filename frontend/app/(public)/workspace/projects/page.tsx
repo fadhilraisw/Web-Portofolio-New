@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ProjectGridView } from './components/ProjectGridView'; // Sesuaikan lokasi impor jika beda
-import { ProjectDetailView } from './components/ProjectDetailView'; // Sesuaikan lokasi impor jika beda
+import { ProjectGridView } from '@/components/workspace/views/ProjectGridView';
+import { ProjectDetailView } from '@/components/workspace/views/ProjectDetailView';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -38,7 +38,7 @@ export default function ProjectsPage() {
               OPERATIONAL DIRECTORY
             </h1>
             <p className="mt-2 font-mono text-[10px] tracking-widest text-white/50 uppercase">
-              {projects.length} RECORDS ACCESSIBLE
+              {projects.length} PROJECTS & PAPERS ACCESSIBLE
             </p>
           </div>
           {selectedProject && (
