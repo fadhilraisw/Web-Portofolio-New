@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { glassBase, glassButton } from '../page';
+import DynamicCardRenderer from '@/components/DynamicCardRenderer';
 
 export default function DashboardCmsView() {
   const [cards, setCards] = useState<any[]>([]);
@@ -14,6 +15,8 @@ export default function DashboardCmsView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [formMessage, setFormMessage] = useState('');
+  const [datasetRows, setDatasetRows] = useState<Array<Record<string, string>>>([]);
+  const [mapPins, setMapPins] = useState<Array<Record<string, string>>>([]);
 
   useEffect(() => { 
     fetchCards(); 
@@ -56,8 +59,10 @@ export default function DashboardCmsView() {
       desc: '', 
       colSpan: 4, 
       order: cards.length + 1, 
-      rawPayload: '[\n  {"name": "Item A", "score": 80},\n  {"name": "Item B", "score": 90}\n]' 
+      rawPayload: '[\n  {"name": "Item A", "value": 80},\n  {"name": "Item B", "value": 90}\n]'
     });
+    setDatasetRows([{ name: 'Item A', value: '80' }, { name: 'Item B', value: '90' }]);
+    setMapPins([]);
     setFormError('');
     setFormMessage('');
     setIsAdding(true);
@@ -76,6 +81,9 @@ export default function DashboardCmsView() {
       order: card.order || 0,
       rawPayload: typeof card.dataPayload === 'object' ? JSON.stringify(card.dataPayload, null, 2) : card.dataPayload
     });
+    const payload = card.dataPayload;
+    setDatasetRows(Array.isArray(payload) ? payload.map((row: any) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, String(value)]))) : []);
+    setMapPins(Array.isArray(payload?.pins) ? payload.pins.map((pin: any) => Object.fromEntries(Object.entries(pin).map(([key, value]) => [key, String(value)]))) : []);
     setFormError('');
     setFormMessage('');
   };
@@ -88,7 +96,21 @@ export default function DashboardCmsView() {
     };
     const selected = templates[template];
     setFormData((current) => ({ ...current, type: selected.type, rawPayload: selected.payload }));
+    if (template === 'chart') setDatasetRows([{ name: 'Item A', value: '80' }, { name: 'Item B', value: '90' }]);
+    if (template === 'timeline') setDatasetRows([{ title: 'MILESTONE', desc: 'Describe the milestone', color: 'cyan' }]);
   };
+
+  const updateMapPins = (pins: Array<Record<string, string>>) => {
+    setMapPins(pins);
+    setFormData((current) => ({ ...current, rawPayload: JSON.stringify({ pins: pins.map((pin) => ({ ...pin, lat: Number(pin.lat), lng: Number(pin.lng) })) }, null, 2) }));
+  };
+
+  const updateDataset = (rows: Array<Record<string, string>>) => {
+    setDatasetRows(rows);
+    setFormData((current) => ({ ...current, rawPayload: JSON.stringify(rows.map((row) => Object.fromEntries(Object.entries(row).map(([key, value]) => [key, /^-?\d+(\.\d+)?$/.test(value) ? Number(value) : value]))), null, 2) }));
+  };
+
+  const addDatasetRow = () => updateDataset([...datasetRows, formData.type === 'TIMELINE' ? { title: '', desc: '', color: 'cyan' } : { name: '', value: '0' }]);
 
   // Handle Submit (Bisa untuk CREATE baru, atau UPDATE yang ada)
   const handleSubmitCard = async (e: React.FormEvent) => {
@@ -225,13 +247,19 @@ export default function DashboardCmsView() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 mb-4">
-            <div className="flex justify-between">
-              <label className="font-mono text-[9px] text-white/50 uppercase">DATA PAYLOAD (JSON)</label>
-              <label className="font-mono text-[8px] text-cyan-400 uppercase">MAP PINS: {`{"pins": [{"lat": -6.2, "lng": 106.9, "title": "...", "desc": "..."}]}`}</label>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-4">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between"><label className="font-mono text-[9px] text-white/50 uppercase">VISUAL DATA BUILDER</label><button type="button" onClick={addDatasetRow} className="font-mono text-[9px] text-cyan-400">+ ADD ROW</button></div>
+              {formData.type === 'MAP_BLOCK' ? <div className="flex flex-col gap-2">
+                {mapPins.map((pin, index) => <div key={index} className="grid grid-cols-[1fr_1fr_1.3fr_1.5fr_auto] gap-2">{['lat', 'lng', 'title', 'desc'].map((key) => <input key={key} value={pin[key] || ''} placeholder={key.toUpperCase()} className="bg-black/40 border border-white/10 px-2 py-2 font-mono text-[10px] text-white" onChange={(e) => updateMapPins(mapPins.map((item, pinIndex) => pinIndex === index ? { ...item, [key]: e.target.value } : item))} />)}<button type="button" onClick={() => updateMapPins(mapPins.filter((_, pinIndex) => pinIndex !== index))} className="text-rose-400 font-mono text-[10px]">X</button></div>)}
+                <button type="button" onClick={() => updateMapPins([...mapPins, { lat: '-6.2', lng: '106.9', title: '', desc: '' }])} className="self-start font-mono text-[9px] text-cyan-400">+ ADD MAP PIN</button>
+              </div> : datasetRows.map((row, index) => <div key={index} className="flex gap-2 items-center">{Object.keys(row).map((key) => <input key={key} value={row[key]} onChange={(e) => updateDataset(datasetRows.map((item, rowIndex) => rowIndex === index ? { ...item, [key]: e.target.value } : item))} placeholder={key.toUpperCase()} className="min-w-0 flex-1 bg-black/40 border border-white/10 px-2 py-2 font-mono text-[10px] text-white" />)}<button type="button" onClick={() => updateDataset(datasetRows.filter((_, rowIndex) => rowIndex !== index))} className="text-rose-400 font-mono text-[10px]">X</button></div>)}
+              {formData.type === 'MAP_BLOCK' && <p className="font-mono text-[8px] text-white/40 uppercase">Map pins use latitude, longitude, title, and description fields. The map card remains available in the dashboard.</p>}
             </div>
-            <textarea rows={8} value={formData.rawPayload} onChange={e => setFormData({...formData, rawPayload: e.target.value})} className="bg-black/40 border border-white/10 p-3 font-mono text-xs text-cyan-300 outline-none focus:border-fuchsia-400 custom-scrollbar" required />
-            <p className="font-mono text-[8px] text-white/40 uppercase">Use the quick-start templates, then replace the sample labels and values. The payload must remain valid JSON.</p>
+            <div className="min-h-[220px] border border-fuchsia-500/20 bg-black/30 p-3">
+              <p className="mb-2 font-mono text-[9px] text-fuchsia-300 uppercase">LIVE VISITOR PREVIEW</p>
+              <DynamicCardRenderer card={{ identifier: formData.identifier, title: formData.title, type: formData.type, desc: formData.desc, colSpan: formData.colSpan, dataPayload: (() => { try { return JSON.parse(formData.rawPayload); } catch { return []; } })(), isVisible: true }} />
+            </div>
           </div>
 
           {formError && <p className="mb-4 font-mono text-[9px] text-rose-400 uppercase">{formError}</p>}

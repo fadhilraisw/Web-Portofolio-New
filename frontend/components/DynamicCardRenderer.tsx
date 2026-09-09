@@ -211,7 +211,7 @@ export default function DynamicCardRenderer({ card, visitor, visitorGoal, isHR, 
             <span className="font-mono text-[8px] tracking-widest text-cyan-400 uppercase animate-pulse">LIVE MAP DATA</span>
           </div>
           <div className="relative h-64 w-full z-0 opacity-80 transition-opacity duration-500 group-hover/cardblock:opacity-100">
-            <ResumeMap />
+            <ResumeMap pins={card.dataPayload?.pins} />
           </div>
         </div>
       )}

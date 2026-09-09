@@ -16,9 +16,9 @@ export default function LogisticsView() {
     recordType: 'JOB_APPLICATION',
     company: '',
     role: '',
-    category: 'HARDWARE ASSET',
-    status: 'ACTIVE / DEPLOYED',
-    location: 'BEKASI HQ',
+    category: 'GENERAL',
+    status: 'TODO',
+    location: '',
     deadline: '',
     priority: 'MEDIUM',
     notes: ''
@@ -47,7 +47,7 @@ export default function LogisticsView() {
         body: JSON.stringify(formData)
       });
       if (res.ok) {
-        setFormData({ itemName: '', recordType: 'JOB_APPLICATION', company: '', role: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', deadline: '', priority: 'MEDIUM', notes: '' });
+        setFormData({ itemName: '', recordType: 'JOB_APPLICATION', company: '', role: '', category: 'GENERAL', status: 'TODO', location: '', deadline: '', priority: 'MEDIUM', notes: '' });
         setEditingId(null);
         fetchItems();
       }
@@ -57,7 +57,7 @@ export default function LogisticsView() {
 
   const handleEdit = (item: any) => {
     setEditingId(item._id);
-    setFormData({ itemName: item.itemName || '', recordType: item.recordType || 'TASK', company: item.company || '', role: item.role || '', category: item.category || '', status: item.status || '', location: item.location || '', deadline: item.deadline ? item.deadline.slice(0, 10) : '', priority: item.priority || 'MEDIUM', notes: item.notes || '' });
+    setFormData({ itemName: item.itemName || '', recordType: item.recordType || 'TASK', company: item.company || '', role: item.role || '', category: item.category || 'GENERAL', status: item.status || 'TODO', location: item.location || '', deadline: item.deadline ? item.deadline.slice(0, 10) : '', priority: item.priority || 'MEDIUM', notes: item.notes || '' });
   };
 
   const handleDelete = async (id: string) => {
@@ -72,39 +72,38 @@ export default function LogisticsView() {
     <div className="flex flex-col gap-6 animate-in fade-in duration-500 pb-10">
       
       <div className={`${glassBase} !bg-amber-500/10 p-6 flex flex-col border-l-4 border-amber-400 gap-2`}>
-        <h3 className="font-mono text-[10px] tracking-[0.2em] text-amber-400 uppercase">LOGISTICS & TRACKING MATRIX</h3>
+        <h3 className="font-mono text-[10px] tracking-[0.2em] text-amber-400 uppercase">JOB APPLICATION & TASK TRACKING</h3>
         <p className="font-mono text-[9px] text-white/50 uppercase leading-relaxed">
-          PEMANTAUAN ASET FISIK, LISENSI PERANGKAT LUNAK, DAN INVENTARIS OPERASIONAL.
+          JOB APPLICATIONS DAN PERSONAL TASKS DIPISAH BERDASARKAN TIPE RECORD. DATA INI HANYA UNTUK ADMIN.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className={`${glassBase} bg-black/60 p-6`}>
         <div className="flex justify-between border-b border-white/10 pb-4 mb-6">
-          <h4 className="font-mono text-xs text-white uppercase tracking-widest">{editingId ? 'UPDATE ASSET' : 'REGISTER NEW ASSET'}</h4>
-          {editingId && <button type="button" onClick={() => { setEditingId(null); setFormData({ itemName: '', recordType: 'JOB_APPLICATION', company: '', role: '', category: 'HARDWARE ASSET', status: 'ACTIVE / DEPLOYED', location: 'BEKASI HQ', deadline: '', priority: 'MEDIUM', notes: '' }); }} className="font-mono text-[9px] text-white/50 uppercase">CANCEL [X]</button>}
+          <h4 className="font-mono text-xs text-white uppercase tracking-widest">{editingId ? 'UPDATE RECORD' : 'NEW TRACKING RECORD'}</h4>
+          {editingId && <button type="button" onClick={() => { setEditingId(null); setFormData({ itemName: '', recordType: 'JOB_APPLICATION', company: '', role: '', category: 'GENERAL', status: 'TODO', location: '', deadline: '', priority: 'MEDIUM', notes: '' }); }} className="font-mono text-[9px] text-white/50 uppercase">CANCEL [X]</button>}
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="flex flex-col gap-2">
             <label className="font-mono text-[9px] text-amber-400 uppercase">TRACKING TYPE</label>
             <select value={formData.recordType} onChange={e => setFormData({...formData, recordType: e.target.value})} className={glassInput}>
-              <option value="JOB_APPLICATION">JOB APPLICATION</option><option value="TASK">TASK / TODO</option><option value="ASSET">ASSET</option>
+              <option value="JOB_APPLICATION">JOB APPLICATION</option><option value="TASK">TASK / TODO</option>
             </select>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-[9px] text-amber-400 uppercase">ITEM / ASSET NAME</label>
-            <input value={formData.itemName} onChange={e => setFormData({...formData, itemName: e.target.value})} className={glassInput} required placeholder="Misal: MacBook Pro M2" />
+            <label className="font-mono text-[9px] text-amber-400 uppercase">{formData.recordType === 'TASK' ? 'TASK TITLE' : 'APPLICATION LABEL'}</label>
+            <input value={formData.itemName} onChange={e => setFormData({...formData, itemName: e.target.value})} className={glassInput} required placeholder={formData.recordType === 'TASK' ? 'Misal: Finish portfolio case study' : 'Misal: Senior Data Engineer application'} />
           </div>
           {formData.recordType === 'JOB_APPLICATION' && <><div className="flex flex-col gap-2"><label className="font-mono text-[9px] text-amber-400 uppercase">COMPANY</label><input value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} className={glassInput} required /></div><div className="flex flex-col gap-2"><label className="font-mono text-[9px] text-amber-400 uppercase">ROLE</label><input value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className={glassInput} required /></div></>}
 
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-[9px] text-amber-400 uppercase">ASSET CATEGORY</label>
+            <label className="font-mono text-[9px] text-amber-400 uppercase">CATEGORY</label>
             <input list="log-categories" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value.toUpperCase()})} className={glassInput} required />
             <datalist id="log-categories">
-              <option value="HARDWARE ASSET" />
-              <option value="SOFTWARE LICENSE" />
-              <option value="MERCHANDISE" />
-              <option value="OFFICE SUPPLY" />
+              <option value="GENERAL" />
+              <option value="INTERVIEW" />
+              <option value="FOLLOW UP" />
             </datalist>
           </div>
           <div className="flex flex-col gap-2"><label className="font-mono text-[9px] text-white/50 uppercase">DEADLINE</label><input type="date" value={formData.deadline} onChange={e => setFormData({...formData, deadline: e.target.value})} className={glassInput} /></div>
@@ -114,16 +113,17 @@ export default function LogisticsView() {
             <label className="font-mono text-[9px] text-white/50 uppercase">CURRENT STATUS</label>
             <input list="log-status" value={formData.status} onChange={e => setFormData({...formData, status: e.target.value.toUpperCase()})} className={glassInput} required />
             <datalist id="log-status">
-              <option value="ACTIVE / DEPLOYED" />
-              <option value="IN TRANSIT" />
-              <option value="IN MAINTENANCE" />
-              <option value="ARCHIVED" />
+              <option value="TODO" />
+              <option value="APPLIED" />
+              <option value="INTERVIEW" />
+              <option value="REJECTED" />
+              <option value="DONE" />
             </datalist>
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-[9px] text-white/50 uppercase">LOCATION ID</label>
-            <input value={formData.location} onChange={e => setFormData({...formData, location: e.target.value.toUpperCase()})} className={glassInput} required />
+            <label className="font-mono text-[9px] text-white/50 uppercase">REFERENCE / LOCATION</label>
+            <input value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className={glassInput} />
           </div>
 
           <div className="flex flex-col gap-2 md:col-span-2">

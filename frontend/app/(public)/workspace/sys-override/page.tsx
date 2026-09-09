@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-import VisualsView from './views/VisualsView';
 import DashboardCmsView from './views/DashboardCmsView';
 import LogisticsView from './views/LogisticsView';
 import TelemetryView from './views/TelemetryView';
@@ -16,8 +15,7 @@ import SecurityView from './views/SecurityView';
 const ADMIN_MODULES = [
   { id: 'projects', label: 'COMMAND CENTER (PROJECTS)' },
   { id: 'dashboard_cms', label: 'DASHBOARD ENGINE (TEXT & TIMELINE)' },
-  { id: 'visuals', label: 'VISUALIZATIONS & MAP (DATA)' },
-  { id: 'tracker', label: 'LOGISTICS & TRACKING' },
+  { id: 'tracker', label: 'JOB APPLICATIONS & TASKS' },
   { id: 'telemetry', label: 'TELEMETRY & LOGS' },
   { id: 'ai_cortex', label: 'AI CORTEX (STRATEGY)' },
   { id: 'assets', label: 'ASSET & RESUME MASTER' },
@@ -42,7 +40,6 @@ export default function AdminPanel() {
 
   const renderActiveModule = () => {
     switch (activeModule) {
-      case 'visuals': return <VisualsView />;
       case 'dashboard_cms': return <DashboardCmsView />;
       case 'tracker': return <LogisticsView />;
       case 'telemetry': return <TelemetryView />;

@@ -38,7 +38,7 @@ export default function ProjectsPage() {
               OPERATIONAL DIRECTORY
             </h1>
             <p className="mt-2 font-mono text-[10px] tracking-widest text-white/50 uppercase">
-              {projects.length} RECORDS ACCESSIBLE
+              {projects.length} PROJECTS & PAPERS ACCESSIBLE
             </p>
           </div>
           {selectedProject && (

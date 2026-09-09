@@ -10,6 +10,8 @@ export function ProjectDetailView({ project }: { project: any }) {
     <div className="flex flex-col animate-in fade-in duration-500 pb-10">
       <h2 className="mb-2 font-mono text-2xl tracking-widest text-white uppercase">{project.title}</h2>
       <p className="mb-8 font-mono text-xs tracking-[0.2em] text-white/60 uppercase">TYPE {project.type}</p>
+      {project.description && <p className="mb-8 max-w-3xl font-mono text-xs leading-relaxed text-white/70">{project.description}</p>}
+      {project.imageFileUrl && <img src={project.imageFileUrl} alt={project.title} className="mb-8 max-h-96 w-full object-contain border border-white/10 bg-black/30" />}
       
       <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4 border-y border-white/5 py-6">
         <div>
@@ -25,7 +27,7 @@ export function ProjectDetailView({ project }: { project: any }) {
       {/* AREA AKSI DINAMIS */}
       <div className="flex flex-col sm:flex-row gap-4">
         {/* LOGIKA UNTUK DOKUMEN / PAPER PDF */}
-        {project.type === 'RESEARCH_PAPER' || project.type === 'ISAS_REPORT' || project.pdfFileUrl ? (
+        {project.contentKind === 'PAPER_FILE' || project.type === 'RESEARCH_PAPER' || project.type === 'ISAS_REPORT' ? (
           <>
             {project.pdfFileUrl ? (
               <>
